@@ -1,0 +1,148 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Muddat Nazorati{% endblock %}
+{% block page_title %}Muddati yaqinlashayotgan dorilar{% endblock %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+<style>
+    .warning-banner {
+        background: #fff8e6; border-left: 5px solid #f1c40f;
+        padding: 25px; border-radius: 20px; margin-bottom: 30px;
+        display: flex; align-items: center; gap: 20px;
+    }
+    .warning-banner i { font-size: 40px; color: #f1c40f; }
+    .warning-banner h2 { color: #856404; font-weight: 800; margin: 0; }
+
+    .product-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px;
+    }
+
+    .product-card {
+        background: white; border-radius: 24px; padding: 25px;
+        box-shadow: 0px 15px 35px rgba(112, 144, 176, 0.1);
+        border: 1px solid #f4f7fe; transition: 0.3s;
+    }
+    .product-card:hover { transform: translateY(-5px); border-color: #f1c40f; }
+
+    .prod-name { color: #2b3674; font-size: 22px; font-weight: 800; margin-bottom: 15px; text-transform: capitalize; }
+
+    .countdown-box {
+        background: #f4f7fe; padding: 15px; border-radius: 16px;
+        margin: 15px 0; text-align: center;
+    }
+    .countdown-text { font-size: 14px; color: #707eae; font-weight: 600; margin-bottom: 5px; }
+    .countdown-days { font-size: 18px; font-weight: 800; color: #f1c40f; }
+
+    .critical-alert { color: #ee5d50 !important; animation: blinker 1.5s linear infinite; }
+    @keyframes blinker { 50% { opacity: 0.5; } }
+
+    .info-item {
+        display: flex; justify-content: space-between; margin-bottom: 10px;
+        font-size: 14px; color: #2b3674;
+    }
+    .info-item span { color: #a3aed0; }
+
+    .price-badge {
+        display: inline-block; padding: 8px 15px; background: #4318ff10;
+        color: #4318ff; border-radius: 10px; font-weight: 800; margin-top: 10px;
+    }
+</style>
+
+<div class="container" style="max-width: 1200px; margin: 0 auto;">
+    <div class="warning-banner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>
+            <h2>Muddat Nazorati (90 kunlik)</h2>
+            <p style="color: #856404; opacity: 0.8;">Tizim faqat sotuvdagi faol dorilarni tekshirmoqda...</p>
+        </div>
+    </div>
+
+    <div class="product-grid" id="nearExpiryGrid">
+        <p>Tahlil qilinmoqda...</p>
+    </div>
+</div>
+
+<script>
+    "use strict";
+
+    function calculateDays(dateStr) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const expDate = new Date(dateStr);
+        const diff = expDate - today;
+        return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    }
+
+    async function loadNearExpiry() {
+        const grid = document.getElementById('nearExpiryGrid');
+        try {
+            const res = await fetch('/api/v1/med/');
+
+            // Tizimga kirmagan bo'lsa yo'naltirish
+            if (res.status === 401 || res.status === 403) {
+                window.location.href = "/login/";
+                return;
+            }
+
+            const products = await res.json();
+
+            // --- ASOSIY FILTR: Faqat is_active=true, miqdori > 0 va muddatiga 90 kundan kam qolganlar ---
+            const soon = products.filter(p => {
+                const days = calculateDays(p.expiry_date);
+                const qty = parseInt(p.quantity || 0);
+
+                return p.is_active !== false && qty > 0 && days > 0 && days <= 90;
+            });
+
+            soon.sort((a, b) => calculateDays(a.expiry_date) - calculateDays(b.expiry_date));
+
+            if (soon.length === 0) {
+                grid.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#a3aed0;'>Hozircha muddati yaqin faol dori vositalari mavjud emas.</p>";
+                return;
+            }
+
+            grid.innerHTML = soon.map(p => {
+                const daysLeft = calculateDays(p.expiry_date);
+                const isCritical = daysLeft <= 10 ? 'critical-alert' : '';
+
+                return `
+                <div class="product-card">
+                    <div class="prod-name">${p.name}</div>
+                    <div class="info-item"><span>Dozasi:</span> <b>${p.grams || '-'}</b></div>
+                    <div class="info-item"><span>Omborda:</span> <b>${p.quantity} ta</b></div>
+                    <div class="price-badge">${parseFloat(p.price || 0).toLocaleString()} so'm</div>
+
+                    <div class="countdown-box">
+                        <div class="countdown-text">Muddat tugashiga:</div>
+                        <div class="countdown-days ${isCritical}">
+                            <i class="fa-solid fa-hourglass-half"></i>
+                            ${daysLeft} kun qoldi
+                        </div>
+                    </div>
+
+                    <div style="font-size: 12px; color: #a3aed0; text-align: center;">
+                        Yaroqlilik muddati: <b>${p.expiry_date}</b>
+                    </div>
+                </div>
+                `;
+            }).join('');
+
+        } catch (e) {
+            console.error("Yuklashda xato:", e);
+            grid.innerHTML = "<p style='color:red;'>Ma'lumotlar yuklanmadi.</p>";
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadNearExpiry);
+</script>
+
+{% else %}
+<script>window.location.href = "/login/";</script>
+<div style="text-align: center; padding: 50px;">
+    <h2>Iltimos, avval tizimga kiring!</h2>
+</div>
+{% endif %}
+
+{% endblock %}

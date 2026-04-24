@@ -1,0 +1,270 @@
+{% extends "frontend/base.html" %}
+{% block content %}
+
+{% if user.is_authenticated %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<style>
+    :root {
+        --brand: #4318ff;
+        --brand-hover: #3311cc;
+        --bg-soft: #f4f7fe;
+        --navy: #1b2559;
+        --border: #e0e5f2;
+        --text-gray: #707eae;
+    }
+
+    body { background-color: var(--bg-soft); font-family: 'Inter', sans-serif; }
+
+    .pro-card {
+        max-width: 800px;
+        margin: 40px auto;
+        background: #ffffff;
+        padding: 45px;
+        border-radius: 30px;
+        box-shadow: 0px 40px 100px rgba(112, 144, 176, 0.15);
+        position: relative;
+    }
+
+    .pro-card::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0; height: 8px;
+        background: linear-gradient(90deg, var(--brand), #8669ff);
+        border-radius: 30px 30px 0 0;
+    }
+
+    .header-section { text-align: center; margin-bottom: 35px; }
+    .header-section h2 { color: var(--navy); font-weight: 800; font-size: 32px; margin-bottom: 5px; }
+    .header-section p { color: var(--text-gray); font-weight: 500; }
+
+    .form-label { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 10px; display: block; }
+
+    .pro-input, .pro-select {
+        width: 100%; height: 60px; padding: 0 20px; border-radius: 18px;
+        border: 2px solid var(--border); background: var(--bg-soft);
+        color: var(--navy); font-weight: 600; font-size: 16px; outline: none; box-sizing: border-box; transition: 0.3s;
+    }
+
+    .pro-input:focus { border-color: var(--brand); background: #fff; }
+
+    .select2-container--default .select2-selection--single {
+        height: 60px !important;
+        background: var(--bg-soft) !important;
+        border: 2px solid var(--border) !important;
+        border-radius: 18px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .btn-submit {
+        width: 100%; height: 65px; background: var(--brand); color: #fff;
+        border: none; border-radius: 20px; font-size: 18px; font-weight: 800;
+        cursor: pointer; transition: 0.3s; box-shadow: 0 15px 35px rgba(67, 24, 255, 0.25);
+        margin-top: 25px;
+    }
+
+    .btn-submit:hover { transform: translateY(-3px); background: var(--brand-hover); }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+</style>
+
+<div class="pro-card">
+    <div class="header-section">
+        <h2>💊 Mahsulot Qabuli</h2>
+        <p>Omborga yangi partiya dori qabul qilish</p>
+    </div>
+
+    <form id="proMedicineForm" autocomplete="off">
+        {% csrf_token %}
+
+        <div class="form-group" style="margin-bottom: 25px;">
+            <label class="form-label"><i class="fa-solid fa-building-circle-check"></i> Ta'minotchi Firma</label>
+            <select id="id_custom_select" class="pro-select" required>
+                <option value="" disabled selected>Firmani tanlang...</option>
+            </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 25px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <label class="form-label" style="margin-bottom:0;"><i class="fa-solid fa-capsules"></i> Mahsulot Nomi</label>
+                <button type="button" id="toggleMode" style="background:none; border:none; color:var(--brand); font-weight:700; cursor:pointer;">➕ Yangi</button>
+            </div>
+            <div id="select_wrapper">
+                <select id="id_medicine_select" style="width: 100%;"></select>
+            </div>
+            <input type="text" class="pro-input" id="id_medicine_name_input" style="display:none;" placeholder="Dori nomini kiriting...">
+        </div>
+
+        <div class="grid-2">
+            <div class="form-group">
+                <label class="form-label">🔢 Miqdori</label>
+                <input type="number" class="pro-input" id="id_quantity" placeholder="0" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">⚖️ Dozasi (mg/ml)</label>
+                <input type="text" class="pro-input" id="id_grams" placeholder="500 mg" required>
+            </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 25px;">
+            <div class="form-group">
+                <label class="form-label">📅 Yaroqlilik Muddati</label>
+                <input type="date" class="pro-input" id="id_expiry_date" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">💰 Sotuv Narxi</label>
+                <input type="number" class="pro-input" id="id_price" placeholder="0" required>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-submit" id="submitBtn">TIZIMGA SAQLASH</button>
+    </form>
+</div>
+
+<script>
+    "use strict";
+    let isNewMode = false;
+
+    async function init() {
+        try {
+            const [customers, medicines] = await Promise.all([
+                fetch('/api/v1/list/custom/').then(r => {
+                    if (r.status === 401 || r.status === 403) window.location.href = "/login/";
+                    return r.json();
+                }),
+                fetch('/api/v1/med/').then(r => r.json())
+            ]);
+
+            const cSelect = document.getElementById('id_custom_select');
+            cSelect.innerHTML = '<option value="" disabled selected>Firmani tanlang...</option>';
+            customers.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.custom_name || `Firma #${c.id}`;
+                cSelect.appendChild(opt);
+            });
+
+            initMedSelect(medicines);
+
+        } catch (e) { console.error("API Error:", e); }
+    }
+
+    function initMedSelect(data) {
+        let unique = [];
+        let seen = new Set();
+
+        // --- FILTR: Faqat is_active: true bo'lgan dorilarni qabul qilamiz ---
+        const activeData = data.filter(m => m.is_active !== false);
+
+        activeData.forEach(m => {
+            const key = (m.name || "").toLowerCase().trim();
+            if(key && !seen.has(key)) {
+                seen.add(key);
+                unique.push({
+                    id: m.name,
+                    text: m.name,
+                    price: m.price,
+                    grams: m.grams
+                });
+            }
+        });
+
+        $('#id_medicine_select').empty().append('<option></option>').select2({
+            data: unique,
+            placeholder: "Dori qidirish...",
+            allowClear: true,
+            width: '100%'
+        }).on('select2:select', function(e) {
+            const d = e.params.data;
+            if(d.price) $('#id_price').val(d.price);
+            if(d.grams) $('#id_grams').val(d.grams);
+        });
+    }
+
+    $(document).ready(() => {
+        init();
+
+        $('#id_grams').on('blur', function() {
+            let v = $(this).val().trim();
+            if(v && !isNaN(v)) $(this).val(v + " mg");
+        });
+
+        $('#toggleMode').click(function() {
+            isNewMode = !isNewMode;
+            if(isNewMode) {
+                $('#select_wrapper').hide();
+                $('#id_medicine_name_input').show().val('').focus();
+                $(this).text("🔙 Ro'yxat");
+            } else {
+                $('#select_wrapper').show();
+                $('#id_medicine_name_input').hide();
+                $(this).text("➕ Yangi");
+            }
+        });
+
+        $('#proMedicineForm').on('submit', async function(e) {
+            e.preventDefault();
+            const customerId = $('#id_custom_select').val();
+            const medicineName = isNewMode ? $('#id_medicine_name_input').val().trim() : $('#id_medicine_select').val();
+
+            if(!customerId || !medicineName) {
+                return Swal.fire('Xato', 'Firma va dori nomini to\'ldiring!', 'warning');
+            }
+
+            const btn = $('#submitBtn');
+            btn.prop('disabled', true).text("SAQLANMOQDA...");
+
+            const payload = {
+                "custom": parseInt(customerId),
+                "name": medicineName,
+                "price": parseFloat($('#id_price').val()) || 0,
+                "quantity": parseInt($('#id_quantity').val()) || 0,
+                "expiry_date": $('#id_expiry_date').val(),
+                "grams": $('#id_grams').val(),
+                "category": "adults"
+            };
+
+            try {
+                const res = await fetch('/api/v1/med/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if(res.status === 401 || res.status === 403) {
+                    window.location.href = "/login/";
+                    return;
+                }
+
+                if(res.ok) {
+                    await Swal.fire('Tayyor!', 'Dori muvaffaqiyatli qabul qilindi.', 'success');
+                    location.reload();
+                } else {
+                    const err = await res.json();
+                    Swal.fire('Xato', JSON.stringify(err), 'error');
+                }
+            } catch(e) {
+                Swal.fire('Xato', 'Server bilan aloqa uzildi.', 'error');
+            } finally {
+                btn.prop('disabled', false).text("TIZIMGA SAQLASH");
+            }
+        });
+    });
+</script>
+
+{% else %}
+<script>window.location.href = "/login/";</script>
+<div style="text-align: center; padding: 50px;">
+    <h2>Iltimos, avval tizimga kiring!</h2>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "frontend/base.html" %}
+
+{% block title %}Dorilar Nazorati{% endblock %}
+{% block page_title %}Dorilar Ombori va Nazorat{% endblock %}
+
+{% block content %}
+
+{% if user.is_authenticated %}
+<style>
+    .section-title {
+        margin: 30px 0 20px; padding-left: 15px; border-left: 5px solid #4318ff;
+        color: #2b3674; font-weight: 800; font-size: 22px;
+    }
+    .expired-title { border-left-color: #e74c3c; color: #e74c3c; }
+
+    .product-grid {
+        display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px;
+        margin-bottom: 50px;
+    }
+
+    .product-card {
+        background: white; border-radius: 20px; padding: 25px;
+        box-shadow: 0px 15px 35px rgba(112, 144, 176, 0.1);
+        transition: transform 0.3s ease; position: relative; border: 1px solid #f4f7fe;
+    }
+    .product-card:hover { transform: translateY(-5px); }
+
+    .card-expired { border: 1px solid #ffe5e5; background: #fffcfc; }
+    .card-expired .prod-name { color: #e74c3c; }
+
+    .badge {
+        position: absolute; top: 15px; right: 15px; padding: 5px 12px;
+        border-radius: 10px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    }
+    .badge-ok { background: #d1fae5; color: #05cd99; }
+    .badge-expired { background: #ffe5e5; color: #e74c3c; }
+
+    .prod-name { color: #2b3674; font-size: 20px; font-weight: 800; margin-bottom: 5px; }
+    .price-tag { font-size: 22px; color: #4318ff; font-weight: 800; margin: 15px 0; }
+
+    .expiry-box {
+        display: flex; align-items: center; gap: 8px; font-size: 12px;
+        padding: 10px; background: #f4f7fe; border-radius: 12px; color: #2b3674;
+    }
+    .expiry-expired { background: #fff5f5; color: #e74c3c; }
+
+    .btn-delete {
+        width: 100%; margin-top: 15px; padding: 12px;
+        background: #e74c3c; color: white; border: none;
+        border-radius: 14px; font-weight: 700; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-delete:hover { background: #c0392b; }
+</style>
+
+<div class="container" style="max-width: 1200px; margin: 0 auto;">
+
+    <div class="section-title">✅ Sotuvdagi dorilar (Yaroqli)</div>
+    <div class="product-grid" id="validGrid">
+        <p>Yuklanmoqda...</p>
+    </div>
+
+    <hr style="border: 0; border-top: 2px dashed #e2e8f0; margin: 40px 0;">
+
+    <div class="section-title expired-title">⚠️ Muddati o'tgan dorilar (O'chirish shart)</div>
+    <div class="product-grid" id="expiredGrid">
+        <p>Tekshirilmoqda...</p>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    "use strict";
+
+    function isExpired(dateStr) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const expDate = new Date(dateStr);
+        return expDate < today;
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function loadAllProducts() {
+        try {
+            const res = await fetch('/api/v1/med/');
+
+            // Tizimga kirmagan bo'lsa login sahifasiga
+            if (res.status === 401 || res.status === 403) {
+                window.location.href = "/login/";
+                return;
+            }
+
+            const products = await res.json();
+
+            const validGrid = document.getElementById('validGrid');
+            const expiredGrid = document.getElementById('expiredGrid');
+
+            // --- ASOSIY FILTR: Faqat is_active true bo'lganlarni olamiz ---
+            const activeProducts = products.filter(p => p.is_active !== false);
+
+            const validList = activeProducts.filter(p => !isExpired(p.expiry_date));
+            const expiredList = activeProducts.filter(p => isExpired(p.expiry_date));
+
+            // Yaroqlilarni chiqarish
+            if (validList.length === 0) {
+                validGrid.innerHTML = "<p style='color:#a3aed0;'>Hozircha sotuvda faol dorilar yo'q.</p>";
+            } else {
+                validGrid.innerHTML = validList.map(p => createCard(p, false)).join('');
+            }
+
+            // Muddati o'tganlarni chiqarish
+            if (expiredList.length === 0) {
+                expiredGrid.innerHTML = "<p style='color:#05cd99'>Muddati o'tgan faol dorilar topilmadi.</p>";
+            } else {
+                expiredGrid.innerHTML = expiredList.map(p => createCard(p, true)).join('');
+            }
+
+        } catch (e) {
+            console.error("Ma'lumot yuklashda xato:", e);
+            document.getElementById('validGrid').innerHTML = "<p style='color:red;'>Yuklashda xato yuz berdi.</p>";
+        }
+    }
+
+    function createCard(p, expired) {
+        const cardClass = expired ? 'product-card card-expired' : 'product-card';
+        const badgeClass = expired ? 'badge badge-expired' : 'badge badge-ok';
+        const badgeText = expired ? 'MUDDATI O\'TGAN' : 'YAROQLI';
+        const expiryBoxClass = expired ? 'expiry-box expiry-expired' : 'expiry-box';
+
+        const deleteBtn = expired ? `
+            <button class="btn-delete" onclick="deleteProduct(${p.id}, '${p.name}')">
+                <i class="fa-solid fa-trash"></i> Bazadan o'chirish
+            </button>` : '';
+
+        return `
+            <div class="${cardClass}" id="card-${p.id}">
+                <span class="${badgeClass}">${badgeText}</span>
+                <div class="prod-name">${p.name}</div>
+                <div style="color:#a3aed0; font-size:13px;">${p.grams || ''} | Qoldiq: ${p.quantity} ta</div>
+
+                <div class="price-tag">${parseFloat(p.price || 0).toLocaleString()} so'm</div>
+
+                <div class="${expiryBoxClass}">
+                    <i class="fa-solid fa-calendar"></i>
+                    <span>Muddati: <b>${p.expiry_date}</b></span>
+                </div>
+                ${deleteBtn}
+            </div>
+        `;
+    }
+
+    async function deleteProduct(id, name) {
+        const result = await Swal.fire({
+            title: 'O\'chirilsinmi?',
+            text: `"${name}" muddati o'tgan dori bazadan butunlay o'chadi!`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e74c3c',
+            confirmButtonText: 'O\'chirish',
+            cancelButtonText: 'Bekor qilish'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`/api/v1/med/${id}/`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+                });
+
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = "/login/";
+                    return;
+                }
+
+                if (res.ok) {
+                    Swal.fire('O\'chirildi!', '', 'success');
+                    document.getElementById(`card-${id}`).remove();
+                } else {
+                    Swal.fire('Xato!', 'O\'chirish imkoni bo\'lmadi.', 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                Swal.fire('Xato!', 'Server bilan aloqa uzildi.', 'error');
+            }
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadAllProducts);
+</script>
+
+{% else %}
+<script>window.location.href = "/login/";</script>
+<div style="text-align: center; padding: 50px;">
+    <h2>Iltimos, avval tizimga kiring!</h2>
+</div>
+{% endif %}
+
+{% endblock %}

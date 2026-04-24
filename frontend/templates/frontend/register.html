@@ -1,0 +1,296 @@
+{% load static %}
+{% block extra_head %}
+<style>
+:root {
+  --pharm-green: #10b981;
+  --pharm-dark: #064e3b;
+  --pharm-light: #f0fdf4;
+  --white: #ffffff;
+  --muted: #6b7280;
+  --danger: #ef4444;
+  --success: #059669;
+}
+
+* { box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+
+.auth-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background:
+    radial-gradient(circle at top left, rgba(16, 185, 129, 0.1), transparent 40%),
+    radial-gradient(circle at bottom right, rgba(6, 78, 59, 0.05), transparent 40%),
+    var(--pharm-light);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 450px;
+  padding: 40px;
+  border-radius: 30px;
+  background: var(--white);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: linear-gradient(90deg, var(--pharm-green), #34d399);
+}
+
+.brand-icon {
+  font-size: 40px;
+  text-align: center;
+  margin-bottom: 15px;
+  display: block;
+}
+
+.auth-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--pharm-dark);
+  margin-bottom: 8px;
+}
+
+.form-group { margin-bottom: 22px; }
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+  color: var(--pharm-dark);
+}
+
+.input-wrap { position: relative; }
+
+.input-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--pharm-green);
+}
+
+.form-control {
+  width: 100%;
+  padding: 14px 16px 14px 45px;
+  border-radius: 16px;
+  border: 1.5px solid #e5e7eb;
+  background: #f9fafb;
+  color: var(--pharm-dark);
+  transition: all 0.3s ease;
+  font-size: 15px;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: var(--pharm-green);
+  background: var(--white);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+}
+
+.btn {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  background: var(--pharm-green);
+  color: white;
+  box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn:hover {
+  background: var(--pharm-dark);
+  transform: translateY(-2px);
+}
+
+.status {
+  margin-top: 20px;
+  padding: 14px;
+  border-radius: 14px;
+  display: none;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.status.error {
+  display: block !important;
+  background: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: var(--danger);
+}
+
+.status.success {
+  display: block !important;
+  background: #ecfdf5;
+  border: 1px solid #d1fae5;
+  color: var(--success);
+}
+
+.row {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 30px;
+  font-size: 14px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 20px;
+}
+
+.link {
+  color: var(--pharm-green);
+  text-decoration: none;
+  font-weight: 600;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="auth-wrap">
+  <div class="auth-card">
+    <span class="brand-icon">⚕️</span>
+    <h2 class="auth-title">DORIXONA</h2>
+
+    <form id="register-form">
+      {% csrf_token %}
+
+      <div class="form-group">
+        <label class="form-label">Email Manzil</label>
+        <div class="input-wrap">
+          <span class="input-icon">📧</span>
+          <input class="form-control" id="reg-email" type="email" placeholder="email@shifokor.uz" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Yangi Parol</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔑</span>
+          <input class="form-control" id="reg-password" type="password" placeholder="••••••••" required minlength="1">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Parolni Tasdiqlang</label>
+        <div class="input-wrap">
+          <span class="input-icon">🛡️</span>
+          <input class="form-control" id="reg-password2" type="password" placeholder="••••••••" required minlength="1">
+        </div>
+      </div>
+
+      <button class="btn" type="submit" id="submit-btn">RO‘YXATDAN O‘TISH</button>
+
+      <div id="register-status" class="status"></div>
+
+      <div class="row">
+        <span style="color: var(--muted)">Profilingiz bormi?</span>
+        <a class="link" href="/login/">Kirish</a>
+      </div>
+
+      <div style="text-align: center; margin-top: 15px;">
+        <a class="link" href="/" style="font-size: 12px; color: var(--muted);">← Bosh sahifa</a>
+      </div>
+    </form>
+  </div>
+</section>
+
+<script>
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+
+document.getElementById("register-form").addEventListener("submit", async function(e){
+  e.preventDefault();
+
+  const email = document.getElementById("reg-email").value.trim();
+  const password = document.getElementById("reg-password").value;
+  const password2 = document.getElementById("reg-password2").value;
+  const statusBox = document.getElementById("register-status");
+  const submitBtn = document.getElementById("submit-btn");
+
+  statusBox.style.display = "none";
+  statusBox.className = "status";
+
+  if(password !== password2){
+    statusBox.classList.add("error");
+    statusBox.innerHTML = "Parollar mos emas.";
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = "YUBORILMOQDA...";
+
+  try{
+    const response = await fetch("/register/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCookie("csrftoken")
+      },
+      body: JSON.stringify({
+        username: email,
+        email: email,
+        password: password
+      })
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if(!response.ok){
+      statusBox.classList.add("error");
+      if(data.email) {
+          statusBox.innerHTML = "Bu email band.";
+      } else if(data.username) {
+          statusBox.innerHTML = "Bu foydalanuvchi nomi band.";
+      } else {
+          statusBox.innerHTML = "Xatolik yuz berdi.";
+      }
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = "RO‘YXATDAN O‘TISH";
+      return;
+    }
+
+    statusBox.classList.add("success");
+    statusBox.innerHTML = "Hisob yaratildi! Kirish sahifasiga o'tkazilmoqda...";
+
+    setTimeout(() => {
+      window.location.href = "/login/";
+    }, 1500);
+
+  } catch(err){
+    statusBox.classList.add("error");
+    statusBox.innerHTML = "Server bilan aloqa xatosi.";
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = "RO‘YXATDAN O‘TISH";
+  }
+});
+</script>
+{% endblock %}

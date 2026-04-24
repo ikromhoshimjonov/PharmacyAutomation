@@ -1,0 +1,211 @@
+{% extends "frontend/base.html" %}
+{% block content %}
+
+{% if user.is_authenticated %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<style>
+    :root {
+        --brand: #4318ff;
+        --bg-soft: #f4f7fe;
+        --navy: #1b2559;
+        --border: #e0e5f2;
+        --text-gray: #a3aed0;
+    }
+    body { background-color: var(--bg-soft); font-family: 'Plus Jakarta Sans', sans-serif; }
+    .settings-container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+    .settings-main { background: #fff; padding: 40px; border-radius: 30px; box-shadow: 0px 40px 100px rgba(112, 144, 176, 0.08); }
+    .profile-header { display: flex; align-items: center; gap: 25px; margin-bottom: 35px; padding-bottom: 30px; border-bottom: 1px solid var(--border); }
+    .avatar-wrapper { position: relative; width: 100px; height: 100px; cursor: pointer; }
+    .avatar-box { width: 100%; height: 100%; background: #4ade80; border-radius: 28px; display: flex; align-items: center; justify-content: center; color: white; font-size: 38px; font-weight: 800; overflow: hidden; }
+    #profileImg { width: 100%; height: 100%; object-fit: cover; border-radius: 28px; display: none; }
+    .avatar-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); border-radius: 28px; display: flex; align-items: center; justify-content: center; color: white; opacity: 0; transition: 0.3s; }
+    .avatar-wrapper:hover .avatar-overlay { opacity: 1; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { margin-bottom: 20px; }
+    .form-label { display: block; font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .pro-input { width: 100%; height: 50px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg-soft); padding: 0 16px; font-weight: 600; color: var(--navy); box-sizing: border-box; transition: 0.3s; }
+    .pro-input:focus { border-color: var(--brand); background: #fff; outline: none; }
+    .pro-input:disabled { background: #f1f4f9; color: #707eae; cursor: not-allowed; }
+    .btn-save { background: var(--brand); color: white; border: none; padding: 16px 35px; border-radius: 16px; font-weight: 800; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 20px; }
+    .role-badge { background: #eeeaff; color: var(--brand); padding: 5px 15px; border-radius: 10px; font-size: 12px; font-weight: 800; text-transform: uppercase; }
+</style>
+
+<div class="settings-container">
+    <div class="settings-main">
+        <div class="profile-header">
+            <div class="avatar-wrapper" onclick="document.getElementById('imageInput').click()">
+                <div id="avatarContainer" class="avatar-box">U</div>
+                <img id="profileImg" alt="Profile">
+                <div class="avatar-overlay"><i class="fa-solid fa-camera"></i></div>
+            </div>
+            <input type="file" id="imageInput" style="display: none;" accept="image/*">
+            <div>
+                <h2 style="margin: 0; color: var(--navy); font-weight: 800;" id="displayName">Yuklanmoqda...</h2>
+                <div style="margin-top: 8px;"><span class="role-badge" id="roleText">---</span></div>
+            </div>
+        </div>
+
+        <form id="settingsForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Tizimdagi Rolingiz</label>
+                    <input type="text" class="pro-input" id="user_role_input" disabled>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email manzil</label>
+                    <input type="email" class="pro-input" id="email" required>
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Ism</label>
+                    <input type="text" class="pro-input" id="first_name" placeholder="Ismingizni kiriting">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Familiya</label>
+                    <input type="text" class="pro-input" id="last_name" placeholder="Familiyangizni kiriting">
+                </div>
+            </div>
+            <div style="margin-top: 20px; padding-top: 25px; border-top: 1px solid var(--border);">
+                <h3 style="font-size: 16px; color: var(--navy); margin-bottom: 15px;"><i class="fa-solid fa-key"></i> Parolni o'zgartirish</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Yangi parol</label>
+                        <input type="password" class="pro-input" id="new_password" placeholder="Bo'sh qolsa o'zgarmaydi">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Parolni tasdiqlang</label>
+                        <input type="password" class="pro-input" id="confirm_password" placeholder="Qayta kiriting">
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn-save" id="saveBtn">O'ZGARISHLARNI SAQLASH</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    "use strict";
+    const API_URL = '/api/v1/user/parameters/';
+    let userId = null;
+    let currentUsername = "";
+
+    async function loadUserData() {
+        try {
+            const res = await fetch(API_URL);
+
+            // Tizimga kirmagan bo'lsa yo'naltirish
+            if (res.status === 401 || res.status === 403) {
+                window.location.href = "/login/";
+                return;
+            }
+
+            const data = await res.json();
+            const user = Array.isArray(data) ? data[0] : data;
+
+            if(user && user.id) {
+                userId = user.id;
+                currentUsername = user.username;
+
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('first_name').value = user.first_name || '';
+                document.getElementById('last_name').value = user.last_name || '';
+                document.getElementById('user_role_input').value = user.role || 'Seller';
+                document.getElementById('roleText').innerText = user.role || 'Seller';
+
+                const fName = user.first_name || "";
+                const lName = user.last_name || "";
+                const fullText = (fName + " " + lName).trim();
+                document.getElementById('displayName').innerText = fullText || user.username || "Foydalanuvchi";
+
+                const img = document.getElementById('profileImg');
+                const avatarPlaceholder = document.getElementById('avatarContainer');
+
+                if(user.image) {
+                    img.src = user.image;
+                    img.style.display = 'block';
+                    avatarPlaceholder.style.display = 'none';
+                } else {
+                    img.style.display = 'none';
+                    avatarPlaceholder.style.display = 'flex';
+                    avatarPlaceholder.innerText = (fName || user.username || 'U')[0].toUpperCase();
+                }
+            }
+        } catch (e) { console.error("Yuklashda xato:", e); }
+    }
+
+    document.getElementById('imageInput').onchange = function() {
+        const [file] = this.files;
+        if (file) {
+            const img = document.getElementById('profileImg');
+            img.src = URL.createObjectURL(file);
+            img.style.display = 'block';
+            document.getElementById('avatarContainer').style.display = 'none';
+        }
+    };
+
+    document.getElementById('settingsForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const pass = document.getElementById('new_password').value;
+        const confirm = document.getElementById('confirm_password').value;
+
+        if(pass && pass !== confirm) return Swal.fire('Xato', 'Parollar mos kelmadi!', 'error');
+        if(!userId) return Swal.fire('Xato', 'Foydalanuvchi topilmadi!', 'error');
+
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saqlanmoqda...';
+
+        const formData = new FormData();
+        formData.append('username', currentUsername);
+        formData.append('email', document.getElementById('email').value);
+        formData.append('first_name', document.getElementById('first_name').value);
+        formData.append('last_name', document.getElementById('last_name').value);
+
+        if(pass.trim() !== "") {
+            formData.append('password', pass);
+        }
+
+        const imgFile = document.getElementById('imageInput').files[0];
+        if(imgFile) formData.append('image', imgFile);
+
+        try {
+            const res = await fetch(`${API_URL}${userId}/`, {
+                method: 'PATCH',
+                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                body: formData
+            });
+
+            if (res.status === 401 || res.status === 403) {
+                window.location.href = "/login/";
+                return;
+            }
+
+            if(res.ok) {
+                await Swal.fire('Tayyor!', 'Ma\'lumotlar muvaffaqiyatli yangilandi', 'success');
+                location.reload();
+            } else {
+                const err = await res.json();
+                Swal.fire('Xato', JSON.stringify(err), 'error');
+            }
+        } catch (e) {
+            Swal.fire('Xato', 'Server bilan aloqa uzildi', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'O\'ZGARISHLARNI SAQLASH';
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadUserData);
+</script>
+
+{% else %}
+<script>window.location.href = "/login/";</script>
+<div style="text-align: center; padding: 50px;">
+    <h2>Iltimos, avval tizimga kiring!</h2>
+</div>
+{% endif %}
+
+{% endblock %}
