@@ -1,4 +1,3 @@
-from requests import Response
 from rest_framework.serializers import ModelSerializer
 from rest_framework import serializers, status
 from medicines.models import Medicines, Stock, Suppliers, CustomerMedicine
@@ -94,3 +93,5 @@ class SupModelSerializer(ModelSerializer):
         fields = "name","phone","address"
 
 
+class AIQuestionSerializer(serializers.Serializer):
+    question = serializers.CharField(required=True, help_text="AI ga beriladigan savol")

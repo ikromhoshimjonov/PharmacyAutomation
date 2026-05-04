@@ -17,44 +17,60 @@ class UserModelSerializer(ModelSerializer):
         return password
 
 User = get_user_model()
+# class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+#     username_field = "email"
+#
+#     def get_token(cls, user):
+#         token = super().get_token(user)
+#
+#         token["is_superuser"] = user.is_superuser
+#         token["email"] = user.email
+#
+#         return token
+#
+#     def validate(self, attrs):
+#         email = attrs.get("email")
+#         password = attrs.get("password")
+#
+#         if not email or not password:
+#             raise AuthenticationFailed("Email va password kerak")
+#
+#         try:
+#             user = User.objects.get(email=email)
+#         except User.DoesNotExist:
+#             raise AuthenticationFailed("Login xato. Email/parolni tekshiring.")
+#
+#         if not user.check_password(password):
+#             raise AuthenticationFailed("Login xato. Email/parolni tekshiring.")
+#
+#         # --- MANA BU QATORNI QO'SHING ---
+#         # Djangoga ushbu foydalanuvchi standart backend orqali kirganini bildiramiz
+#         user.backend = 'django.contrib.auth.backends.ModelBackend'
+#
+#         self.user = user  # View uchun saqlab qo'yamiz
+#
+#         refresh = self.get_token(user)
+#         return {
+#             "refresh": str(refresh),
+#             "access": str(refresh.access_token)
+#         }
+
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = "email"
 
+    @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
-
         token["is_superuser"] = user.is_superuser
         token["email"] = user.email
-
         return token
 
     def validate(self, attrs):
-        email = attrs.get("email")
-        password = attrs.get("password")
+        # super().validate o'zi foydalanuvchini tekshiradi va self.user ga yuklaydi
+        data = super().validate(attrs)
 
-        if not email or not password:
-            raise AuthenticationFailed("Email va password kerak")
-
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            raise AuthenticationFailed("Login xato. Email/parolni tekshiring.")
-
-        if not user.check_password(password):
-            raise AuthenticationFailed("Login xato. Email/parolni tekshiring.")
-
-        # --- MANA BU QATORNI QO'SHING ---
-        # Djangoga ushbu foydalanuvchi standart backend orqali kirganini bildiramiz
-        user.backend = 'django.contrib.auth.backends.ModelBackend'
-
-        self.user = user  # View uchun saqlab qo'yamiz
-
-        refresh = self.get_token(user)
-        return {
-            "refresh": str(refresh),
-            "access": str(refresh.access_token)
-        }
-
+        # Bu yerda self.user allaqachon super() tomonidan o'rnatilgan bo'ladi
+        return data
 
 class UserParametersModelSerializers(ModelSerializer):
     password = serializers.CharField(

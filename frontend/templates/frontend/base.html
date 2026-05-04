@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Pharma TUIT — {% block title %}Tizim{% endblock %}</title>
+    <title>Pharma Pro — {% block title %}Tizim{% endblock %}</title>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
     <style>
@@ -17,29 +17,47 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'DM Sans', sans-serif; background: #f8fafc; display: flex; min-height: 100vh; }
 
-        /* SIDEBAR */
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: #f8fafc;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* SIDEBAR - Standart va Qat'iy */
         .sidebar {
             width: var(--sidebar-w);
+            min-width: var(--sidebar-w);
+            max-width: var(--sidebar-w);
             background: var(--sidebar-bg);
             height: 100vh;
             position: fixed;
+            left: 0; top: 0;
             display: flex;
             flex-direction: column;
             z-index: 1000;
         }
 
         .logo {
-            padding: 22px 20px;
+            height: var(--topbar-h);
+            padding: 0 25px;
             display: flex; align-items: center; gap: 12px;
             border-bottom: 1px solid rgba(255,255,255,.07);
             color: #fff; font-size: 20px; font-weight: bold;
+            flex-shrink: 0;
         }
         .logo span { color: var(--accent); }
 
+        .nav-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
         .sidebar-section {
-            padding: 20px 20px 8px;
+            padding: 24px 25px 8px;
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
@@ -47,13 +65,19 @@
             letter-spacing: 1.2px;
         }
 
+        /* Menyu bitta qatorda chiqishi uchun */
         .nav-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 12px 20px; color: rgba(255,255,255,.6);
+            display: flex; align-items: center; gap: 15px;
+            padding: 12px 25px; color: rgba(255,255,255,.6);
             text-decoration: none; font-size: 14px; transition: 0.2s;
             border-left: 4px solid transparent;
+            white-space: nowrap; /* Matnni bitta qatorda ushlaydi */
+            overflow: hidden;
+            text-overflow: ellipsis; /* Sig'masa nuqta qo'yadi */
         }
-        .nav-item:hover { background: rgba(255,255,255,.07); color: #fff; }
+        .nav-item i { width: 20px; text-align: center; flex-shrink: 0; }
+
+        .nav-item:hover { background: rgba(255,255,255,.05); color: #fff; }
         .nav-item.active {
             background: rgba(255,255,255,.07);
             color: #fff;
@@ -61,36 +85,50 @@
         }
 
         /* SIDEBAR BOTTOM & USER CARD */
-        .sidebar-bottom { margin-top: auto; padding: 15px; position: relative; }
+        .sidebar-bottom {
+            margin-top: auto; padding: 15px;
+            background: rgba(0,0,0,0.1);
+            flex-shrink: 0;
+        }
+
         .user-card {
             background: rgba(255,255,255,.06);
-            padding: 10px; border-radius: 10px;
-            display: flex; align-items: center; gap: 10px;
+            padding: 12px; border-radius: 12px;
+            display: flex; align-items: center; gap: 12px;
             cursor: pointer; transition: 0.3s;
         }
         .user-card:hover { background: rgba(255,255,255,.1); }
-        .avatar { width: 35px; height: 35px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: bold; text-transform: uppercase; }
+
+        .avatar {
+            min-width: 38px; height: 38px; border-radius: 10px;
+            background: var(--accent); display: flex; align-items: center;
+            justify-content: center; color: #fff; font-weight: bold; font-size: 16px;
+        }
 
         .dropdown-menu {
-            position: absolute; bottom: 80px; left: 15px; right: 15px;
-            background: #1a2b3c; border-radius: 10px;
+            position: absolute; bottom: 85px; left: 15px; right: 15px;
+            background: #1a2b3c; border-radius: 12px;
             display: none; flex-direction: column;
             box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
             overflow: hidden; z-index: 1001;
         }
         .dropdown-menu.show { display: flex; }
-        .logout-link { padding: 12px; color: var(--danger); text-decoration: none; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .logout-link { padding: 15px; color: var(--danger); text-decoration: none; font-size: 14px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
 
-        /* MAIN CONTENT & TOPBAR */
-        .main-content { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; }
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: var(--sidebar-w);
+            width: calc(100% - var(--sidebar-w));
+            flex: 1; display: flex; flex-direction: column;
+        }
+
         .topbar {
             height: var(--topbar-h); background: #fff; border-bottom: 1px solid #e2e8f0;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 32px; position: sticky; top: 0; z-index: 999;
         }
-        .topbar-right { display: flex; align-items: center; gap: 12px; flex: 1; justify-content: flex-end; }
-        .search-input { width: 100%; max-width: 400px; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 10px; outline: none; }
 
+        .search-input { width: 100%; max-width: 400px; background: #f1f5f9; border: 1px solid #e2e8f0; padding: 10px 16px; border-radius: 10px; outline: none; }
         .page-body { padding: 24px 32px; flex: 1; }
     </style>
 </head>
@@ -98,56 +136,60 @@
 
 <aside class="sidebar">
     <div class="logo">
-        <i class="fa-solid fa-capsules" style="color: var(--accent);"></i> Pharma<span>TUIT</span>
+        <i class="fa-solid fa-capsules" style="color: var(--accent);"></i> Pharma<span>PRO</span>
     </div>
 
-    <nav style="margin-top: 10px;">
-        <div class="sidebar-section">Asosiy</div>
-        <a href="/" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Boshqaruv paneli</a>
-        <a href="/new/sale/" class="nav-item"><i class="fa-solid fa-cash-register"></i> Kassa / Sotuv</a>
-        <a href="/product/table/" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Mahsulotlar</a>
+    <div class="nav-container">
+        <nav style="margin-top: 10px;">
+            <div class="sidebar-section">Asosiy</div>
+            <a href="/" class="nav-item"><i class="fa-solid fa-gauge-high"></i> Boshqaruv paneli</a>
+            <a href="/new/sale/" class="nav-item"><i class="fa-solid fa-cash-register"></i> Kassa / Sotuv</a>
+            <a href="/product/table/" class="nav-item"><i class="fa-solid fa-boxes-stacked"></i> Mahsulotlar</a>
 
-        <div class="sidebar-section">Boshqaruv</div>
-        <a href="/new/product/" class="nav-item"><i class="fa-solid fa-file-invoice"></i> Maxsulot buyurtma berish</a>
-        <a href="/in/out/" class="nav-item"><i class="fa-solid fa-truck-ramp-box"></i> Maxsulotlar kirim chiqimlari</a>
-        <a href="/expiry/medicine/" class="nav-item"><i class="fa-solid fa-triangle-exclamation"></i> Muddati o'tayotganlar</a>
+            <div class="sidebar-section">Boshqaruv</div>
+            <a href="/new/product/" class="nav-item"><i class="fa-solid fa-file-invoice"></i> Buyurtma berish</a>
+            <a href="/in/out/" class="nav-item"><i class="fa-solid fa-truck-ramp-box"></i> Kirim chiqimlar</a>
+            <a href="/expiry/medicine/" class="nav-item"><i class="fa-solid fa-triangle-exclamation"></i> Muddati o'tayotganlar</a>
 
-        <div class="sidebar-section">Hisobotlar</div>
-        <a href="/report/pharma/" class="nav-item"><i class="fa-solid fa-chart-line"></i> Tahlil & Hisobot</a>
+            <div class="sidebar-section">Hisobotlar</div>
+            <a href="/report/pharma/" class="nav-item"><i class="fa-solid fa-chart-line"></i> Tahlil & Hisobot</a>
 
-        <div class="sidebar-section">Tizim</div>
-        <a href="/settings/table/" class="nav-item"><i class="fa-solid fa-gear"></i> Sozlamalar</a>
-    </nav>
+            <div class="sidebar-section">Tizim</div>
+            <a href="/settings/table/" class="nav-item"><i class="fa-solid fa-gear"></i> Sozlamalar</a>
+            <a href="/product/question/" class="nav-item">
+                <i class="fa-solid fa-robot" style="color: var(--accent);"></i> AI Chatbot
+            </a>
+        </nav>
+    </div>
 
     <div class="sidebar-bottom">
         <div class="dropdown-menu" id="userDropdown">
-            <div style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.1)">
-                <div id="user-email-display" style="color:#fff; font-size:13px;">...</div>
-                <small id="user-role-display-dropdown" style="color:rgba(255,255,255,0.5)">...</small>
+            <div style="padding:15px; border-bottom:1px solid rgba(255,255,255,0.1)">
+                <div id="user-email-display" style="color:#fff; font-size:12px; opacity:0.7;">Email yuklanmoqda...</div>
             </div>
-            <a href="/logout/" class="logout-link" onclick="handleLogout(event)">
+            <a href="/logout/" class="logout-link">
                 <i class="fa-solid fa-right-from-bracket"></i> Chiqish
             </a>
         </div>
 
         <div class="user-card" id="userCard">
             <div class="avatar" id="user-initials">?</div>
-            <div style="flex: 1; overflow: hidden;">
-                <div id="user-name-display" style="color:#fff; font-size:13px; font-weight:600;">Yuklanmoqda...</div>
+            <div style="flex: 1; overflow: hidden; white-space: nowrap;">
+                <div id="user-name-display" style="color:#fff; font-size:13px; font-weight:600; text-overflow: ellipsis; overflow: hidden;">Yuklanmoqda...</div>
                 <div id="user-role-display" style="color:rgba(255,255,255,0.4); font-size:11px; text-transform: capitalize;">---</div>
             </div>
-            <i class="fa-solid fa-chevron-right" style="color:rgba(255,255,255,0.3); font-size: 12px;"></i>
+            <i class="fa-solid fa-chevron-right" style="color:rgba(255,255,255,0.3); font-size: 10px;"></i>
         </div>
     </div>
 </aside>
 
 <main class="main-content">
     <header class="topbar">
-        <div class="topbar-title">
+        <div style="font-weight: 600; font-size: 18px; color: #1e293b;">
             {% block page_title %}Boshqaruv paneli{% endblock %}
         </div>
-        <div class="topbar-right">
-            <input type="text" id="globalSearch" class="search-input" placeholder="Dori nomi bo'yicha qidirish...">
+        <div style="display:flex; align-items:center; gap:12px; flex:1; justify-content:flex-end;">
+            <input type="text" id="globalSearch" class="search-input" placeholder="Qidirish...">
         </div>
     </header>
 
@@ -159,79 +201,49 @@
 <script>
     "use strict";
 
-    // 1. Sidebar aktiv menyu
+    // 1. Aktiv menyu
     function handleActiveMenu() {
-        const currentPath = window.location.pathname;
-        const navItems = document.querySelectorAll('.nav-item');
-        navItems.forEach(item => {
-            const linkPath = item.getAttribute('href');
-            if (currentPath === linkPath || (linkPath !== '/' && currentPath.startsWith(linkPath))) {
+        const path = window.location.pathname;
+        document.querySelectorAll('.nav-item').forEach(item => {
+            const href = item.getAttribute('href');
+            if (path === href || (href !== '/' && path.startsWith(href))) {
                 item.classList.add('active');
-            } else {
-                item.classList.remove('active');
             }
         });
     }
 
-    // 2. UNIVERSAL QIDIRUV (Ham jadval, ham kartochkalar uchun)
-    const searchInput = document.getElementById('globalSearch');
-
-    function performSearch(query) {
-        const filter = query.toLowerCase().trim();
-
-        // Jadvallar uchun (Table rows)
-        const rows = document.querySelectorAll('table tbody tr');
-        rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            row.style.display = text.includes(filter) ? "" : "none";
-        });
-
-        // Kartochkalar uchun (Cards)
-        // Rasmda dori nomlari h2 yoki h3 ichida turibdi deb hisoblaymiz
-        const cards = document.querySelectorAll('.card, [class*="card"]');
-        cards.forEach(card => {
-            const text = card.textContent.toLowerCase();
-            card.style.display = text.includes(filter) ? "" : "none";
-        });
-    }
-
-    // Real vaqtda qidirish
-    searchInput.addEventListener('input', function() {
-        performSearch(this.value);
-    });
-
-    // Enter bosilganda boshqa sahifada bo'lsa yo'naltirish
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            const query = this.value.trim();
-            if (!window.location.pathname.includes('/product/table/') && !window.location.pathname.includes('/expiry/medicine/')) {
-                window.location.href = `/product/table/?q=${encodeURIComponent(query)}`;
-            }
-        }
-    });
-
-    // 3. User ma'lumotlarini yuklash
+    // 2. User ma'lumotlari (Mantiq yangilandi)
     async function fetchUserInfo() {
         try {
-            const response = await fetch("/api/v1/user/parameters/");
+            const token = localStorage.getItem("access");
+            const response = await fetch("/api/v1/user/parameters/", {
+                headers: { "Authorization": token ? `Bearer ${token}` : "" }
+            });
             const data = await response.json();
-            const user = Array.isArray(data) ? data[0] : data;
+            const user = Array.isArray(data) ? data[0] : (data.results ? data.results[0] : data);
 
             if (user) {
-                // Ism va familiyani birlashtirish
-                const firstName = user.first_name || "";
-                const lastName = user.last_name || "";
-                const fullName = (firstName + " " + lastName).trim() || user.username || "Foydalanuvchi";
+                const firstName = (user.first_name || "").trim();
+                const lastName = (user.last_name || "").trim();
+                const email = (user.email || "").trim();
                 const role = user.role || "Seller";
 
-                document.getElementById('user-email-display').innerText = user.email || 'Email yo\'q';
-                document.getElementById('user-name-display').innerText = fullName;
+                // MANTIQ: Ism yoki familiya bo'lsa ularni, aks holda emailni chiqarish
+                let displayName = "";
+                if (firstName || lastName) {
+                    displayName = `${firstName} ${lastName}`.trim();
+                } else {
+                    displayName = email || user.username || "Foydalanuvchi";
+                }
+
+                document.getElementById('user-name-display').innerText = displayName;
+                document.getElementById('user-email-display').innerText = email || 'Email yo\'q';
                 document.getElementById('user-role-display').innerText = role;
-                document.getElementById('user-role-display-dropdown').innerText = `Rol: ${role}`;
-                document.getElementById('user-initials').innerText = fullName.charAt(0).toUpperCase();
+                document.getElementById('user-initials').innerText = displayName.charAt(0).toUpperCase();
             }
         } catch (error) {
-            console.error("User info xatosi:", error);
+            console.error("Xatolik:", error);
+            document.getElementById('user-name-display').innerText = "Xatolik!";
         }
     }
 
@@ -247,14 +259,6 @@
     document.addEventListener('DOMContentLoaded', () => {
         handleActiveMenu();
         fetchUserInfo();
-
-        // URL'dan qidiruv parametrini tekshirish
-        const urlParams = new URLSearchParams(window.location.search);
-        const q = urlParams.get('q');
-        if (q) {
-            searchInput.value = q;
-            setTimeout(() => performSearch(q), 500); // Ma'lumotlar yuklanishini kutadi
-        }
     });
 </script>
 

@@ -14,6 +14,7 @@ class Medicines(Model):
     is_active = BooleanField(default=True)
 
     class StatusCategory(TextChoices):
+        ALL = "all" , "All"
         YOUNG = "young", "Young"
         TEENAGERS = "teenagers", "Teenagers"
         ADULTS = "adults", "Adults"

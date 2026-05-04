@@ -3,14 +3,12 @@
 {% block extra_head %}
 <style>
 :root {
-  /* Dorixona brend ranglari */
   --pharm-green: #10b981;
   --pharm-dark: #064e3b;
   --pharm-light: #f0fdf4;
   --white: #ffffff;
   --muted: #6b7280;
   --danger: #ef4444;
-  --success: #059669;
 }
 
 * { box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
@@ -27,9 +25,7 @@ html, body {
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  background:
-    radial-gradient(circle at top left, rgba(16, 185, 129, 0.1), transparent 40%),
-    linear-gradient(180deg, #ffffff, var(--pharm-light));
+  background: radial-gradient(circle at top left, rgba(16, 185, 129, 0.1), transparent 40%), #ffffff;
 }
 
 .auth-card {
@@ -38,13 +34,11 @@ html, body {
   padding: 40px;
   border-radius: 28px;
   background: var(--white);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(16, 185, 129, 0.1);
   position: relative;
-  overflow: hidden;
 }
 
-/* Yuqoridagi yashil dizayn chizig'i */
 .auth-card::before {
   content: "";
   position: absolute;
@@ -54,30 +48,9 @@ html, body {
   border-radius: 28px 28px 0 0;
 }
 
-.brand-section {
-  text-align: center;
-  margin-bottom: 30px;
-}
+.brand-section { text-align: center; margin-bottom: 30px; }
 
-.brand-icon {
-  font-size: 45px;
-  margin-bottom: 10px;
-  display: inline-block;
-  filter: drop-shadow(0 4px 6px rgba(16, 185, 129, 0.2));
-}
-
-.auth-title {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--pharm-dark);
-  margin: 0;
-}
-
-.auth-subtitle {
-  color: var(--muted);
-  font-size: 14px;
-  margin-top: 5px;
-}
+.auth-title { font-size: 24px; font-weight: 800; color: var(--pharm-dark); margin: 0; }
 
 .form-group { margin-bottom: 22px; }
 
@@ -89,26 +62,9 @@ html, body {
   color: var(--pharm-dark);
 }
 
-.field { position: relative; }
-
-.icon {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-}
-
-.icon svg {
-  width: 18px;
-  height: 18px;
-  fill: var(--pharm-green);
-}
-
 .form-control {
   width: 100%;
-  padding: 14px 16px 14px 45px;
+  padding: 14px 16px;
   border-radius: 16px;
   border: 1.5px solid #e2e8f0;
   background: #f8fafc;
@@ -120,23 +76,7 @@ html, body {
 .form-control:focus {
   outline: none;
   border-color: var(--pharm-green);
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
   background: white;
-}
-
-.toggle-pass {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  padding: 6px 12px;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  background: white;
-  color: var(--pharm-green);
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
 }
 
 .btn {
@@ -150,31 +90,13 @@ html, body {
   background: var(--pharm-green);
   color: white;
   transition: 0.3s;
-  margin-top: 10px;
   box-shadow: 0 10px 25px rgba(16, 185, 129, 0.2);
 }
 
-.btn:hover {
-  background: var(--pharm-dark);
-  transform: translateY(-1px);
+.btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
 }
-
-.row {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 25px;
-  padding-top: 20px;
-  border-top: 1px solid #f1f5f9;
-}
-
-.link {
-  color: var(--pharm-green);
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.link:hover { text-decoration: underline; color: var(--pharm-dark); }
 
 .alert {
   display: none;
@@ -184,13 +106,9 @@ html, body {
   font-size: 13px;
   text-align: center;
   font-weight: 600;
-}
-
-.alert-error {
-  display: block;
+  border: 1px solid #fee2e2;
   background: #fef2f2;
   color: var(--danger);
-  border: 1px solid #fee2e2;
 }
 </style>
 {% endblock %}
@@ -200,9 +118,9 @@ html, body {
   <div class="auth-card">
 
     <div class="brand-section">
-      <span class="brand-icon">⚕️</span>
+      <span style="font-size: 45px;">⚕️</span>
       <h3 class="auth-title">Xush kelibsiz!</h3>
-      <p class="auth-subtitle">Tizimga kirish uchun ma'lumotlarni kiriting</p>
+      <p style="color: var(--muted); font-size: 14px; margin-top: 5px;">Tizimga kirish uchun ma'lumotlarni kiriting</p>
     </div>
 
     <div id="msg" class="alert"></div>
@@ -212,31 +130,19 @@ html, body {
 
       <div class="form-group">
         <label class="form-label">Email Manzil</label>
-        <div class="field">
-          <span class="icon">
-            <svg viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4-8 5-8-5V6l8 5 8-5v2z"/></svg>
-          </span>
-          <input class="form-control" id="email" type="email" placeholder="shifokor@mail.com" required>
-        </div>
+        <input class="form-control" id="email" type="email" placeholder="shifokor@mail.com" required>
       </div>
 
       <div class="form-group">
         <label class="form-label">Maxfiy Parol</label>
-        <div class="field">
-          <span class="icon">
-            <svg viewBox="0 0 24 24"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm-3 8V6a3 3 0 0 1 6 0v3H9z"/></svg>
-          </span>
-          <input class="form-control" id="password" type="password" placeholder="••••••••" required>
-          <button type="button" class="toggle-pass" id="toggleBtn" onclick="togglePass()">Ko‘rish</button>
-        </div>
+        <input class="form-control" id="password" type="password" placeholder="••••••••" required>
       </div>
 
-      <button class="btn" type="submit">TIZIMGA KIRISH</button>
+      <button class="btn" type="submit" id="submit-btn">TIZIMGA KIRISH</button>
 
-      <div class="row">
-          <span style="color: var(--muted)">Profilingiz yuqmi?</span>
-        <a class="link" href="/register/front">Ro‘yxatdan o‘tish</a>
-
+      <div style="display: flex; justify-content: space-between; margin-top: 25px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
+          <span style="color: var(--muted); font-size: 14px;">Profilingiz yo'qmi?</span>
+          <a href="/register/front" style="color: var(--pharm-green); text-decoration: none; font-weight: 700; font-size: 14px;">Ro‘yxatdan o‘tish</a>
       </div>
 
     </form>
@@ -244,69 +150,51 @@ html, body {
 </section>
 
 <script>
-// Parolni ko'rsatish/yashirish funksiyasi
-function togglePass() {
-  const input = document.getElementById("password");
-  const btn = document.getElementById("toggleBtn");
-  if (input.type === "password") {
-    input.type = "text";
-    btn.innerText = "Yashirish";
-  } else {
-    input.type = "password";
-    btn.innerText = "Ko‘rish";
-  }
-}
-
 const form = document.getElementById("login-form");
 const msgBox = document.getElementById("msg");
+const submitBtn = document.getElementById("submit-btn");
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  // Tozalash va yuklash holati
   msgBox.style.display = "none";
+  submitBtn.disabled = true;
+  submitBtn.innerText = "KIRILMOQDA...";
 
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
+  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
   try {
+    // FAQAT BIR MARTA SO'ROV: Bu so'rov ham JWT beradi, ham Session ochadi
     const res = await fetch("/api/token/", {
         method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({email, password})
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify({ email, password })
     });
 
     const data = await res.json();
 
-    if(!res.ok){
-        msgBox.innerText = "Email yoki parol noto‘g‘ri!";
-        msgBox.className = "alert alert-error";
-        msgBox.style.display = "block";
-        return;
+    if (!res.ok) {
+        throw new Error(data.detail || "Email yoki parol noto‘g‘ri!");
     }
 
-    // JWT tokenni decode qilish
-    const payload = JSON.parse(atob(data.access.split('.')[1]));
+    // JWT saqlash (kelgusidagi API so'rovlari uchun)
+    localStorage.setItem("access", data.access);
+    localStorage.setItem("refresh", data.refresh);
 
-    if(payload.is_superuser){
-        // Superuser bo‘lsa admin panelga
-        await fetch("/site-login/", {
-            method:"POST",
-            headers:{"Content-Type":"application/x-www-form-urlencoded"},
-            credentials:"include",
-            body:`email=${email}&password=${password}`
-        });
-        window.location.href="/admin/";
-    } else {
-        // Oddiy user bo‘lsa JWT saqlaymiz va /index/ ga yo'naltiramiz
-        localStorage.setItem("access", data.access);
-        localStorage.setItem("refresh", data.refresh);
+    // Muvaffaqiyatli login - Bosh sahifaga yo'naltirish
+    window.location.href = "/";
 
-        // YO'NALTIRISH: Muvaffaqiyatli bo'lsa index/ ga boradi
-        window.location.href="/";
-    }
   } catch (err) {
-    msgBox.innerText = "Server bilan aloqa uzildi!";
-    msgBox.className = "alert alert-error";
+    msgBox.innerText = err.message;
     msgBox.style.display = "block";
+    submitBtn.disabled = false;
+    submitBtn.innerText = "TIZIMGA KIRISH";
   }
 });
 </script>

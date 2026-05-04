@@ -94,18 +94,25 @@
 
     async function loadUserData() {
         try {
-            const res = await fetch(API_URL);
+            // JWT tokenni headerda yuborish (None xatoligini oldini olish uchun)
+            const token = localStorage.getItem("access");
+            const res = await fetch(API_URL, {
+                method: "GET",
+                headers: {
+                    "Authorization": token ? `Bearer ${token}` : "",
+                    "Content-Type": "application/json"
+                }
+            });
 
-            // Tizimga kirmagan bo'lsa yo'naltirish
             if (res.status === 401 || res.status === 403) {
                 window.location.href = "/login/";
                 return;
             }
 
             const data = await res.json();
-            const user = Array.isArray(data) ? data[0] : data;
+            const user = Array.isArray(data) ? data[0] : (data.results ? data.results[0] : data);
 
-            if(user && user.id) {
+            if(user) {
                 userId = user.id;
                 currentUsername = user.username;
 
@@ -115,10 +122,21 @@
                 document.getElementById('user_role_input').value = user.role || 'Seller';
                 document.getElementById('roleText').innerText = user.role || 'Seller';
 
-                const fName = user.first_name || "";
-                const lName = user.last_name || "";
-                const fullText = (fName + " " + lName).trim();
-                document.getElementById('displayName').innerText = fullText || user.username || "Foydalanuvchi";
+                // --- ISMNI CHIQARISH MANTIQI ---
+                const fName = (user.first_name || "").trim();
+                const lName = (user.last_name || "").trim();
+                const email = (user.email || "").trim();
+
+                let displayValue = "";
+
+                // Agar ism yoki familiya bo'lsa ularni chiqarish, bo'lmasa emailni chiqarish
+                if (fName || lName) {
+                    displayValue = (fName + " " + lName).trim();
+                } else {
+                    displayValue = email || user.username || "Foydalanuvchi";
+                }
+
+                document.getElementById('displayName').innerText = displayValue;
 
                 const img = document.getElementById('profileImg');
                 const avatarPlaceholder = document.getElementById('avatarContainer');
@@ -130,10 +148,16 @@
                 } else {
                     img.style.display = 'none';
                     avatarPlaceholder.style.display = 'flex';
-                    avatarPlaceholder.innerText = (fName || user.username || 'U')[0].toUpperCase();
+                    // Avatar harfi: DisplayValue ning birinchi harfini oladi
+                    avatarPlaceholder.innerText = displayValue[0].toUpperCase();
                 }
+            } else {
+                document.getElementById('displayName').innerText = "Ma'lumot topilmadi";
             }
-        } catch (e) { console.error("Yuklashda xato:", e); }
+        } catch (e) {
+            console.error("Yuklashda xato:", e);
+            document.getElementById('displayName').innerText = "Xatolik yuz berdi";
+        }
     }
 
     document.getElementById('imageInput').onchange = function() {
@@ -151,8 +175,11 @@
         const pass = document.getElementById('new_password').value;
         const confirm = document.getElementById('confirm_password').value;
 
-        if(pass && pass !== confirm) return Swal.fire('Xato', 'Parollar mos kelmadi!', 'error');
-        if(!userId) return Swal.fire('Xato', 'Foydalanuvchi topilmadi!', 'error');
+        if(pass && pass !== confirm) {
+            Swal.fire('Xato', 'Parollar mos kelmadi!', 'error');
+            return;
+        }
+        if(!userId) return;
 
         const btn = document.getElementById('saveBtn');
         btn.disabled = true;
@@ -171,27 +198,27 @@
         const imgFile = document.getElementById('imageInput').files[0];
         if(imgFile) formData.append('image', imgFile);
 
+        const token = localStorage.getItem("access");
+
         try {
             const res = await fetch(`${API_URL}${userId}/`, {
                 method: 'PATCH',
-                headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Authorization': token ? `Bearer ${token}` : ""
+                },
                 body: formData
             });
 
-            if (res.status === 401 || res.status === 403) {
-                window.location.href = "/login/";
-                return;
-            }
-
             if(res.ok) {
-                await Swal.fire('Tayyor!', 'Ma\'lumotlar muvaffaqiyatli yangilandi', 'success');
+                await Swal.fire('Tayyor!', 'Ma\'lumotlar yangilandi', 'success');
                 location.reload();
             } else {
                 const err = await res.json();
-                Swal.fire('Xato', JSON.stringify(err), 'error');
+                Swal.fire('Xato', 'Yangilashda xatolik yuz berdi', 'error');
             }
         } catch (e) {
-            Swal.fire('Xato', 'Server bilan aloqa uzildi', 'error');
+            Swal.fire('Xato', 'Server xatosi', 'error');
         } finally {
             btn.disabled = false;
             btn.innerText = 'O\'ZGARISHLARNI SAQLASH';
@@ -203,9 +230,6 @@
 
 {% else %}
 <script>window.location.href = "/login/";</script>
-<div style="text-align: center; padding: 50px;">
-    <h2>Iltimos, avval tizimga kiring!</h2>
-</div>
 {% endif %}
 
 {% endblock %}

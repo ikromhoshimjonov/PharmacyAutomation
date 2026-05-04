@@ -1,19 +1,27 @@
+import json
+import os
 from datetime import timedelta
 from django.db.models import Sum, F, DecimalField, Q
 from django.db.models import Sum
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from django.utils import timezone
-
+from openai import OpenAI
 from medicines.models import Medicines, Stock, Suppliers, CustomerMedicine
 from medicines.serializers import MedModelSerializer, StockModelSerializer, MedicModelSerializer, SupModelSerializer, \
-    CustomerModelSerializer
+    CustomerModelSerializer, AIQuestionSerializer
 from rest_framework import filters
+from dotenv import load_dotenv
+from django.views.decorators.csrf import csrf_exempt
 
+load_dotenv()
+SECRET_KEY = os.getenv("OPENAI_API_KEY")
 
 
 @extend_schema(tags=["med"],summary="Dori darmonlarni qushish va uchirish")
@@ -92,7 +100,6 @@ class TodayRevenueView(APIView):
 class StockViewSet(ModelViewSet):
     queryset = Stock.objects.all()
     serializer_class = StockModelSerializer
-
 
 
 @extend_schema(tags=["stock"])
@@ -201,3 +208,52 @@ class MonthlySalesStatView(APIView):
             "best_day": best_day,
             "days_in_report": days_count
         })
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+@extend_schema(tags=["request"])
+class AIConsultantView(APIView):
+    serializer_class = AIQuestionSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        print("KELAYOTGAN DATA:", request.data)
+
+        serializer = AIQuestionSerializer(data=request.data)
+        if serializer.is_valid():
+            user_question = serializer.validated_data['question']
+
+            if not SECRET_KEY:
+                return Response({"error": ".env faylida OPENAI_API_KEY topilmadi"}, status=500)
+
+            try:
+                client = OpenAI(api_key=SECRET_KEY)
+
+                response = client.chat.completions.create(
+                    response_format={"type": "json_object"},
+                    model="gpt-4o-mini",
+                    messages=[
+                        {"role": "system", "content": """
+                        Faqat o'zbek tilida javob ber.
+
+                        Agar savol farmatsevtikaga aloqador bo'lmasa, 'Kechirasiz, men faqat farmatsevtika va dori vositalari bo'yicha yordam bera olaman.' deb javob qaytar.
+
+                        Javobingni FAQAT JSON formatida taqdim et.
+
+                        JSON strukturasi quyidagicha bo'lsin: {"javob": "bu yerda to'liq va aniq javob matni bo'ladi"}.
+
+                        Matndan tashqari hech qanday qo'shimcha tushuntirish yoki 'Mana sizning JSON kodingiz' kabi gaplarni qo'shma.
+                        
+                        """},
+
+                        {"role": "user", "content": user_question}
+                    ]
+                )
+
+                return Response(json.loads(response.choices[0].message.content))
+
+            except Exception as e:
+                return Response({"error": str(e)}, status=500)
+        else:
+            print("XATO:", serializer.errors)
+            return Response(serializer.errors, status=400)

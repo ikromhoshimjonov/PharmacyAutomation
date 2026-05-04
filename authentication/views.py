@@ -3,6 +3,7 @@ from django.shortcuts import redirect
 from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
+from rest_framework.authentication import SessionAuthentication
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -29,11 +30,15 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
 
-        serializer.is_valid(raise_exception=True)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception as e:
+            return Response({"detail": "Email yoki parol noto'g'ri"}, status=status.HTTP_401_UNAUTHORIZED)
 
         user = serializer.user
 
-        login(request, user)
+        if user:
+            login(request, user)
 
         return Response(serializer.validated_data, status=status.HTTP_200_OK)
 
@@ -45,8 +50,11 @@ class CustomTokenRefreshView(TokenRefreshView):
 
 @extend_schema(tags=["user parameters"])
 class UserParameters(ModelViewSet):
-    queryset = User.objects.all()
     serializer_class = UserParametersModelSerializers
+    authentication_classes = [JWTAuthentication,SessionAuthentication]
+
+    def get_queryset(self):
+        return User.objects.filter(id=self.request.user.id)
 
 @csrf_exempt
 def admin_login(request):

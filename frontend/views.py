@@ -39,3 +39,5 @@ def report_table(request):
     return render(request, "frontend/report_pharma.html")
 def product_in_out(request):
     return render(request, "frontend/in_and_out.html")
+def product_question(request):
+    return render(request, "frontend/question.html")

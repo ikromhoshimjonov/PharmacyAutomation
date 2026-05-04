@@ -1,6 +1,6 @@
 from django.urls import path
 from frontend.views import index, register, login, figma, sale, product, product_table, expiry_medicine_table, \
-    settings_table, report_table, product_in_out
+    settings_table, report_table, product_in_out, product_question
 
 urlpatterns = [
     path("", index, name="frontend_index"),
@@ -12,5 +12,6 @@ urlpatterns = [
     path("expiry/medicine/",expiry_medicine_table,name="product-expiry"),
     path("settings/table/",settings_table,name="settings-table"),
     path("report/pharma/",report_table,name="report-pharma"),
-    path("in/out/",product_in_out,name="in-out")
+    path("in/out/",product_in_out,name="in-out"),
+    path("product/question/",product_question,name="question-pr")
 ]

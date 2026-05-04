@@ -4,10 +4,7 @@ from rest_framework.routers import DefaultRouter
 from authentication.views import UserParameters
 from medicines.views import MedModelViewSet, ExpiringMedicinesView, ExpiredProductsCountView, TodaySalesSummaryView, \
       TodayRevenueView, StockViewSet, ExpiringCountMedicinesView, WeeklySalesStatView, TopSellingMedicinesView, \
-      SupModelViewSet, MonthlySalesStatView, CustomListApiView
-
-
-
+      SupModelViewSet, MonthlySalesStatView, CustomListApiView, AIConsultantView
 
 router = DefaultRouter()
 urlpatterns = [
@@ -19,7 +16,8 @@ urlpatterns = [
       path('/stats/weekly-sales/', WeeklySalesStatView.as_view(), name='weekly-stats'),
       path('/stats/top-selling/', TopSellingMedicinesView.as_view(), name='top-selling'),
       path('/sale/month/',MonthlySalesStatView.as_view(),name="sale-month"),
-      path('/list/custom/', CustomListApiView.as_view(), name="customs")
+      path('/list/custom/', CustomListApiView.as_view(), name="customs"),
+      path('/ai-consultant/', AIConsultantView.as_view(), name='ai_consultant'),
 
 ]
 
