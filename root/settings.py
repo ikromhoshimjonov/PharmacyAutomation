@@ -1,3 +1,4 @@
+import os
 from datetime import timedelta
 from os.path import join
 from pathlib import Path
@@ -110,9 +111,10 @@ USE_I18N = True
 
 USE_TZ = False
 
-STATIC_URL = 'static/'
-STATIC_ROOT = join(BASE_DIR,'static')
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = join(BASE_DIR,'media')
