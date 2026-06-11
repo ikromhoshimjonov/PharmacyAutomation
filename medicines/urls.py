@@ -1,6 +1,7 @@
 from django.urls import path
 from rest_framework.routers import DefaultRouter
-
+from django.conf import settings
+from django.conf.urls.static import static
 from authentication.views import UserParameters
 from medicines.views import MedModelViewSet, ExpiringMedicinesView, ExpiredProductsCountView, TodaySalesSummaryView, \
       TodayRevenueView, StockViewSet, ExpiringCountMedicinesView, WeeklySalesStatView, TopSellingMedicinesView, \
@@ -21,6 +22,7 @@ urlpatterns = [
       path('/ai-consultant/', AIConsultantView.as_view(), name='ai_consultant'),
       path('/medicine-search/<str:name>/', MedicineSearchAPIView.as_view(), name='medicine-search'),
 ]
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 router.register(r'/med', MedModelViewSet , basename='med')
 router.register(r'/stock', StockViewSet , basename='stock')

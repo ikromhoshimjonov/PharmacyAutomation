@@ -1,6 +1,8 @@
 from django.urls import path
 from frontend.views import index, register, login, figma, sale, product, product_table, expiry_medicine_table, \
     settings_table, report_table, product_in_out, product_question, similarity_question
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("", index, name="frontend_index"),
@@ -16,4 +18,6 @@ urlpatterns = [
     path("product/question/",product_question,name="question-pr"),
     path("similarity/pharma/",similarity_question,name="similarity")
 ]
+
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
