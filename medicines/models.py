@@ -1,6 +1,17 @@
+import os
+
+import numpy as np
 from django.db.models import CASCADE, SET_NULL
 from django.db.models import Model, CharField, ForeignKey, DecimalField, TextField, DateField, TextChoices, \
-    IntegerField, DateTimeField , BooleanField
+    IntegerField, DateTimeField , BooleanField ,BinaryField
+
+from dotenv import load_dotenv
+from openai import OpenAI
+
+load_dotenv()
+SECRET_KEY = os.getenv("OPENAI_API_KEY")
+client = OpenAI(api_key=SECRET_KEY)
+
 
 class Medicines(Model):
     name = CharField(max_length=255)
@@ -12,6 +23,7 @@ class Medicines(Model):
     quantity = IntegerField()
     grams = CharField(max_length=255)
     is_active = BooleanField(default=True)
+    embedding =BinaryField(null=True, blank=True, editable=False)
 
     class StatusCategory(TextChoices):
         ALL = "all" , "All"
@@ -22,6 +34,22 @@ class Medicines(Model):
     category = CharField(max_length=25, choices=StatusCategory)
     custom = ForeignKey("medicines.CustomerMedicine",on_delete=CASCADE)
 
+    def save(self, *args, **kwargs):
+        # Tavsif o'zgarganda yoki yangi dori qo'shilganda embedding yaratish
+        if self.description and not self.embedding:
+            try:
+                text = f"{self.name}. {self.description}"
+                response = client.embeddings.create(
+                    input=text,
+                    model="text-embedding-3-small"
+                )
+                vector = response.data[0].embedding
+                # Vektorni float32 formatida baytlarga o'giramiz
+                self.embedding = np.array(vector, dtype=np.float32).tobytes()
+            except Exception as e:
+                print(f"Embedding yaratishda xato: {e}")
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

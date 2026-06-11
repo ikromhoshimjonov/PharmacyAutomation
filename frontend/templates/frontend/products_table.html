@@ -201,6 +201,15 @@
     }
 
     document.addEventListener('DOMContentLoaded', loadAllProducts);
+    function filterTableByText(query) {
+    const rows = document.querySelectorAll("table tbody tr"); // Jadval qatorlari
+    const lowerQuery = query.toLowerCase();
+
+    rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(lowerQuery) ? "" : "none";
+    });
+}
 </script>
 
 {% else %}

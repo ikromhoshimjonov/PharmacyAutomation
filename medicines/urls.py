@@ -4,7 +4,8 @@ from rest_framework.routers import DefaultRouter
 from authentication.views import UserParameters
 from medicines.views import MedModelViewSet, ExpiringMedicinesView, ExpiredProductsCountView, TodaySalesSummaryView, \
       TodayRevenueView, StockViewSet, ExpiringCountMedicinesView, WeeklySalesStatView, TopSellingMedicinesView, \
-      SupModelViewSet, MonthlySalesStatView, CustomListApiView, AIConsultantView
+      SupModelViewSet, MonthlySalesStatView, CustomListApiView, AIConsultantView, MedicineSearchAPIView
+
 
 router = DefaultRouter()
 urlpatterns = [
@@ -18,7 +19,7 @@ urlpatterns = [
       path('/sale/month/',MonthlySalesStatView.as_view(),name="sale-month"),
       path('/list/custom/', CustomListApiView.as_view(), name="customs"),
       path('/ai-consultant/', AIConsultantView.as_view(), name='ai_consultant'),
-
+      path('/medicine-search/<str:name>/', MedicineSearchAPIView.as_view(), name='medicine-search'),
 ]
 
 router.register(r'/med', MedModelViewSet , basename='med')

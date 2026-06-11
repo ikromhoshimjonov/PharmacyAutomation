@@ -41,3 +41,6 @@ def product_in_out(request):
     return render(request, "frontend/in_and_out.html")
 def product_question(request):
     return render(request, "frontend/question.html")
+
+def similarity_question(request):
+    return render(request, "frontend/similarity_pharma.html")

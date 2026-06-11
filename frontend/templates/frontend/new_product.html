@@ -7,126 +7,174 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
     :root {
-        --brand: #4318ff;
-        --brand-hover: #3311cc;
-        --bg-soft: #f4f7fe;
-        --navy: #1b2559;
-        --border: #e0e5f2;
-        --text-gray: #707eae;
+        --primary: #6366f1;
+        --primary-dark: #4f46e5;
+        --secondary: #ec4899;
+        --success: #10b981;
+        --bg-main: #f8fafc;
+        --card-bg: #ffffff;
+        --text-dark: #0f172a;
+        --text-muted: #64748b;
+        --input-border: #e2e8f0;
+        --input-focus: #818cf8;
     }
 
-    body { background-color: var(--bg-soft); font-family: 'Inter', sans-serif; }
+    body {
+        background-color: var(--bg-main);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        color: var(--text-dark);
+    }
+
+    /* Asosiy konteyner animatsiyasi */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
     .pro-card {
-        max-width: 800px;
+        max-width: 850px;
         margin: 40px auto;
-        background: #ffffff;
-        padding: 45px;
-        border-radius: 30px;
-        box-shadow: 0px 40px 100px rgba(112, 144, 176, 0.15);
+        background: var(--card-bg);
+        padding: 50px;
+        border-radius: 32px;
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.05);
         position: relative;
+        animation: fadeInUp 0.6s ease-out;
     }
 
-    .pro-card::before {
+    /* Yuqori chiziq o'rniga zamonaviy gradient aura */
+    .pro-card::after {
         content: "";
         position: absolute;
-        top: 0; left: 0; right: 0; height: 8px;
-        background: linear-gradient(90deg, var(--brand), #8669ff);
-        border-radius: 30px 30px 0 0;
+        top: -2px; left: -2px; right: -2px; height: 120px;
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
+        z-index: -1;
+        border-radius: 32px 32px 0 0;
+        opacity: 0.1;
     }
 
-    .header-section { text-align: center; margin-bottom: 35px; }
-    .header-section h2 { color: var(--navy); font-weight: 800; font-size: 32px; margin-bottom: 5px; }
-    .header-section p { color: var(--text-gray); font-weight: 500; }
+    .header-section { text-align: left; margin-bottom: 40px; border-left: 5px solid var(--primary); padding-left: 20px; }
+    .header-section h2 { font-weight: 800; font-size: 34px; letter-spacing: -1px; margin-bottom: 8px; color: var(--text-dark); }
+    .header-section p { color: var(--text-muted); font-size: 16px; font-weight: 500; }
 
-    .form-label { font-size: 14px; font-weight: 700; color: var(--navy); margin-bottom: 10px; display: block; }
+    .form-label { font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .form-label i { color: var(--primary); font-size: 16px; }
 
     .pro-input, .pro-select {
-        width: 100%; height: 60px; padding: 0 20px; border-radius: 18px;
-        border: 2px solid var(--border); background: var(--bg-soft);
-        color: var(--navy); font-weight: 600; font-size: 16px; outline: none; box-sizing: border-box; transition: 0.3s;
+        width: 100%; height: 58px; padding: 0 20px; border-radius: 16px;
+        border: 2px solid var(--input-border); background: #ffffff;
+        color: var(--text-dark); font-weight: 600; font-size: 16px; outline: none;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .pro-input:focus { border-color: var(--brand); background: #fff; }
+    .pro-input:focus { border-color: var(--input-focus); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
 
+    /* Select2 stilini yanada rangli qilish */
     .select2-container--default .select2-selection--single {
-        height: 60px !important;
-        background: var(--bg-soft) !important;
-        border: 2px solid var(--border) !important;
-        border-radius: 18px !important;
-        display: flex !important;
-        align-items: center !important;
+        height: 58px !important;
+        background: #fff !important;
+        border: 2px solid var(--input-border) !important;
+        border-radius: 16px !important;
+        transition: 0.3s;
     }
+
+    .select2-container--default .select2-selection--single:hover { border-color: var(--input-focus); }
 
     .btn-submit {
-        width: 100%; height: 65px; background: var(--brand); color: #fff;
-        border: none; border-radius: 20px; font-size: 18px; font-weight: 800;
-        cursor: pointer; transition: 0.3s; box-shadow: 0 15px 35px rgba(67, 24, 255, 0.25);
-        margin-top: 25px;
+        width: 100%; height: 68px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+        color: #fff; border: none; border-radius: 18px; font-size: 18px; font-weight: 800;
+        cursor: pointer; transition: 0.4s;
+        box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+        margin-top: 35px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
-    .btn-submit:hover { transform: translateY(-3px); background: var(--brand-hover); }
+    .btn-submit:hover {
+        transform: translateY(-4px) scale(1.01);
+        box-shadow: 0 15px 30px rgba(99, 102, 241, 0.5);
+    }
 
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+
+    #toggleMode {
+        background: rgba(99, 102, 241, 0.1);
+        padding: 6px 15px;
+        border-radius: 10px;
+        font-size: 13px;
+        transition: 0.3s;
+    }
+    #toggleMode:hover { background: var(--primary); color: #fff !important; }
+
+    /* Input guruhlariga rangli urg'u berish */
+    .form-group:focus-within .form-label { color: var(--primary); }
 </style>
 
 <div class="pro-card">
     <div class="header-section">
-        <h2>💊 Mahsulot Qabuli</h2>
-        <p>Omborga yangi partiya dori qabul qilish</p>
+        <h2><i class="fa-solid fa-truck-ramp-box" style="color:var(--primary);"></i> Mahsulot Qabuli</h2>
+        <p>Omborga yangi partiya dori-darmonlarni tizimlashtirish</p>
     </div>
 
     <form id="proMedicineForm" autocomplete="off">
         {% csrf_token %}
 
-        <div class="form-group" style="margin-bottom: 25px;">
-            <label class="form-label"><i class="fa-solid fa-building-circle-check"></i> Ta'minotchi Firma</label>
+        <div class="form-group" style="margin-bottom: 30px;">
+            <label class="form-label"><i class="fa-solid fa-building-shield"></i> Ta'minotchi Firma</label>
             <select id="id_custom_select" class="pro-select" required>
                 <option value="" disabled selected>Firmani tanlang...</option>
             </select>
         </div>
 
-        <div class="form-group" style="margin-bottom: 25px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <label class="form-label" style="margin-bottom:0;"><i class="fa-solid fa-capsules"></i> Mahsulot Nomi</label>
-                <button type="button" id="toggleMode" style="background:none; border:none; color:var(--brand); font-weight:700; cursor:pointer;">➕ Yangi</button>
+        <div class="form-group" style="margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <label class="form-label" style="margin-bottom:0;"><i class="fa-solid fa-vial-circle-check"></i> Mahsulot Nomi</label>
+                <button type="button" id="toggleMode" style="border:none; color:var(--primary); font-weight:800; cursor:pointer;">
+                    <i class="fa-solid fa-plus-circle"></i> Yangi dori
+                </button>
             </div>
             <div id="select_wrapper">
                 <select id="id_medicine_select" style="width: 100%;"></select>
             </div>
-            <input type="text" class="pro-input" id="id_medicine_name_input" style="display:none;" placeholder="Dori nomini kiriting...">
+            <input type="text" class="pro-input" id="id_medicine_name_input" style="display:none; border-color: var(--secondary);" placeholder="Yangi dori nomini yozing...">
         </div>
 
         <div class="grid-2">
             <div class="form-group">
-                <label class="form-label">🔢 Miqdori</label>
-                <input type="number" class="pro-input" id="id_quantity" placeholder="0" required>
+                <label class="form-label"><i class="fa-solid fa-arrow-up-9-1"></i> Miqdori</label>
+                <input type="number" class="pro-input" id="id_quantity" placeholder="0 dona" required>
             </div>
             <div class="form-group">
-                <label class="form-label">⚖️ Dozasi (mg/ml)</label>
-                <input type="text" class="pro-input" id="id_grams" placeholder="500 mg" required>
+                <label class="form-label"><i class="fa-solid fa-weight-hanging"></i> Dozasi (mg/ml)</label>
+                <input type="text" class="pro-input" id="id_grams" placeholder="Masalan: 500" required>
             </div>
         </div>
 
-        <div class="grid-2" style="margin-top: 25px;">
+        <div class="grid-2" style="margin-top: 30px;">
             <div class="form-group">
-                <label class="form-label">📅 Yaroqlilik Muddati</label>
-                <input type="date" class="pro-input" id="id_expiry_date" required>
+                <label class="form-label"><i class="fa-solid fa-calendar-day"></i> Yaroqlilik Muddati</label>
+                <input type="date" class="pro-input" id="id_expiry_date" required style="cursor: pointer;">
             </div>
             <div class="form-group">
-                <label class="form-label">💰 Sotuv Narxi</label>
-                <input type="number" class="pro-input" id="id_price" placeholder="0" required>
+                <label class="form-label"><i class="fa-solid fa-tag"></i> Sotuv Narxi (UZS)</label>
+                <input type="number" class="pro-input" id="id_price" placeholder="0.00" required style="border-color: var(--success); background: #f0fdf4;">
             </div>
         </div>
 
-        <button type="submit" class="btn-submit" id="submitBtn">TIZIMGA SAQLASH</button>
+        <button type="submit" class="btn-submit" id="submitBtn">
+            <i class="fa-solid fa-cloud-arrow-up"></i> TIZIMGA SAQLASH
+        </button>
     </form>
 </div>
 
 <script>
+    // JS mantiqi aynan bir xil qoldirildi, faqat vizual o'zgarishlar e'tiborga olindi
     "use strict";
     let isNewMode = false;
 
@@ -157,8 +205,6 @@
     function initMedSelect(data) {
         let unique = [];
         let seen = new Set();
-
-        // --- FILTR: Faqat is_active: true bo'lgan dorilarni qabul qilamiz ---
         const activeData = data.filter(m => m.is_active !== false);
 
         activeData.forEach(m => {
@@ -176,7 +222,7 @@
 
         $('#id_medicine_select').empty().append('<option></option>').select2({
             data: unique,
-            placeholder: "Dori qidirish...",
+            placeholder: "🔍 Dori nomini kiriting...",
             allowClear: true,
             width: '100%'
         }).on('select2:select', function(e) {
@@ -198,12 +244,12 @@
             isNewMode = !isNewMode;
             if(isNewMode) {
                 $('#select_wrapper').hide();
-                $('#id_medicine_name_input').show().val('').focus();
-                $(this).text("🔙 Ro'yxat");
+                $('#id_medicine_name_input').fadeIn().val('').focus();
+                $(this).html('<i class="fa-solid fa-list-ul"></i> Ro\'yxatga qaytish');
             } else {
                 $('#select_wrapper').show();
                 $('#id_medicine_name_input').hide();
-                $(this).text("➕ Yangi");
+                $(this).html('<i class="fa-solid fa-plus-circle"></i> Yangi dori');
             }
         });
 
@@ -213,11 +259,11 @@
             const medicineName = isNewMode ? $('#id_medicine_name_input').val().trim() : $('#id_medicine_select').val();
 
             if(!customerId || !medicineName) {
-                return Swal.fire('Xato', 'Firma va dori nomini to\'ldiring!', 'warning');
+                return Swal.fire('Diqqat', 'Firma va dori nomini kiritish majburiy!', 'warning');
             }
 
             const btn = $('#submitBtn');
-            btn.prop('disabled', true).text("SAQLANMOQDA...");
+            btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin"></i> BAZAGA YOZILMOQDA...');
 
             const payload = {
                 "custom": parseInt(customerId),
@@ -245,16 +291,21 @@
                 }
 
                 if(res.ok) {
-                    await Swal.fire('Tayyor!', 'Dori muvaffaqiyatli qabul qilindi.', 'success');
+                    await Swal.fire({
+                        title: 'Muvaffaqiyatli!',
+                        text: 'Dori partiyasi omborga qabul qilindi.',
+                        icon: 'success',
+                        confirmButtonColor: '#6366f1'
+                    });
                     location.reload();
                 } else {
                     const err = await res.json();
-                    Swal.fire('Xato', JSON.stringify(err), 'error');
+                    Swal.fire('Xatolik', 'Ma\'lumotlarni saqlashda xato yuz berdi.', 'error');
                 }
             } catch(e) {
-                Swal.fire('Xato', 'Server bilan aloqa uzildi.', 'error');
+                Swal.fire('Aloqa xatosi', 'Server bilan bog\'lanishda xatolik.', 'error');
             } finally {
-                btn.prop('disabled', false).text("TIZIMGA SAQLASH");
+                btn.prop('disabled', false).html('<i class="fa-solid fa-cloud-arrow-up"></i> TIZIMGA SAQLASH');
             }
         });
     });
@@ -262,9 +313,6 @@
 
 {% else %}
 <script>window.location.href = "/login/";</script>
-<div style="text-align: center; padding: 50px;">
-    <h2>Iltimos, avval tizimga kiring!</h2>
-</div>
 {% endif %}
 
 {% endblock %}

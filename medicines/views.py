@@ -1,12 +1,12 @@
 import json
 import os
 from datetime import timedelta
-from django.db.models import Sum, F, DecimalField, Q
+import numpy as np
+from django.db.models import  F, DecimalField, Q
 from django.db.models import Sum
 from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.generics import ListAPIView
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import  AllowAny
 from rest_framework.response import Response
 from drf_spectacular.utils import extend_schema
 from rest_framework.views import APIView
@@ -15,26 +15,42 @@ from django.utils import timezone
 from openai import OpenAI
 from medicines.models import Medicines, Stock, Suppliers, CustomerMedicine
 from medicines.serializers import MedModelSerializer, StockModelSerializer, MedicModelSerializer, SupModelSerializer, \
-    CustomerModelSerializer, AIQuestionSerializer
+    CustomerModelSerializer, AIQuestionSerializer, MedicineSerializer
 from rest_framework import filters
 from dotenv import load_dotenv
 from django.views.decorators.csrf import csrf_exempt
+from medicines.similaritya import get_embedding, cosine_similarity
+
+
 
 load_dotenv()
 SECRET_KEY = os.getenv("OPENAI_API_KEY")
+
+
 
 
 @extend_schema(tags=["med"],summary="Dori darmonlarni qushish va uchirish")
 class MedModelViewSet(ModelViewSet):
     queryset = Medicines.objects.all()
     serializer_class = MedModelSerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name']
+
+    ordering_fields = ['name', 'price', 'expiry_date']
+    ordering = ['name']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        only_active = self.request.query_params.get('active')
+        if only_active == 'true':
+            queryset = queryset.filter(count__gt=0)
+
+        return queryset
 
 class CustomListApiView(ListAPIView):
     queryset = CustomerMedicine.objects.all()
     serializer_class = CustomerModelSerializer
-
 
 @extend_schema(tags=["statistic"])
 class ExpiringMedicinesView(APIView):
@@ -257,3 +273,73 @@ class AIConsultantView(APIView):
         else:
             print("XATO:", serializer.errors)
             return Response(serializer.errors, status=400)
+
+
+@extend_schema(tags=["request"])
+class MedicineSearchAPIView(APIView):
+    serializer_class = MedicineSerializer
+
+    def get(self, request, name):
+        query_name = name.strip()
+
+        medicine_info = Medicines.objects.filter(name__iexact=query_name).first()
+
+        if medicine_info and medicine_info.quantity > 0:
+            return Response({
+                "status": "success",
+                "found": True,
+                "data": self.serializer_class(medicine_info).data
+            })
+        query_description = medicine_info.description if medicine_info else ""
+
+        query_vector = get_embedding(query_name, description=query_description)
+
+        if query_vector is None:
+            return Response({"error": "Vektor hisoblashda xatolik yuz berdi"}, status=500)
+
+        available_meds = Medicines.objects.filter(quantity__gt=0).exclude(embedding__isnull=True)
+
+        analogs = []
+        THRESHOLD = 0.5
+
+        for med in available_meds:
+            try:
+                med_vector = np.frombuffer(med.embedding, dtype=np.float32)
+
+                if med_vector.shape[0] != query_vector.shape[0]:
+                    continue
+
+                score = cosine_similarity(query_vector, med_vector)
+
+                if score >= THRESHOLD:
+                    med.match_percent = round(float(score) * 100, 2)
+                    analogs.append(med)
+            except Exception as e:
+                print(f"Embedding xatosi ({med.name}): {e}")
+
+
+        analogs = sorted(analogs, key=lambda x: getattr(x, 'match_percent', 0), reverse=True)
+
+        if analogs:
+
+            serialized_analogs = self.serializer_class(analogs[:5], many=True).data
+
+
+            for i in range(len(serialized_analogs)):
+                serialized_analogs[i]['match_percent'] = analogs[i].match_percent
+                serialized_analogs[i]['similarity'] = analogs[i].match_percent
+
+            return Response({
+                "status": "warning",
+                "found": False,
+                "message": f"So‘ralgan '{query_name}' dori vositasi ayni damda omborimizda mavjud emas.",
+                "suggestion_text": f"Quyida ushbu dori vositasi bilan {int(THRESHOLD * 100)}% dan yuqori o‘xshashlikka ega muqobil variantlar:",
+                "analogs": serialized_analogs,
+                "disclaimer": "Eslatma: Muqobil dori vositalarini qo‘llashdan avval shifokor bilan maslahatlashing."
+            })
+
+        return Response({
+            "status": "error",
+            "found": False,
+            "message": f"'{query_name}' topilmadi va unga mos keladigan {int(THRESHOLD * 100)}% lik muqobil variantlar mavjud emas."
+        })

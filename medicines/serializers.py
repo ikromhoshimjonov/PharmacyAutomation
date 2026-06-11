@@ -10,8 +10,6 @@ class MedModelSerializer(ModelSerializer):
         # fields = "id","name","price","expiry_date","description","category","grams","quantity","custom"
 
 
-
-
 class CustomerModelSerializer(ModelSerializer):
     class Meta:
         model = CustomerMedicine
@@ -95,3 +93,11 @@ class SupModelSerializer(ModelSerializer):
 
 class AIQuestionSerializer(serializers.Serializer):
     question = serializers.CharField(required=True, help_text="AI ga beriladigan savol")
+
+
+class MedicineSerializer(serializers.ModelSerializer):
+    similarity = serializers.FloatField(required=False, read_only=True)
+
+    class Meta:
+        model = Medicines
+        fields = ['id', 'name', 'price', 'quantity', 'similarity',"expiry_date"]
