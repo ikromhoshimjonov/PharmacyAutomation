@@ -49,6 +49,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'allauth.account.middleware.AccountMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware'
 ]
 
 ROOT_URLCONF = 'root.urls'
@@ -113,6 +114,12 @@ STATIC_ROOT = join(BASE_DIR,'static')
 
 MEDIA_URL = 'media/'
 MEDIA_ROOT = join(BASE_DIR,'media')
+
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 
 REST_FRAMEWORK = {
