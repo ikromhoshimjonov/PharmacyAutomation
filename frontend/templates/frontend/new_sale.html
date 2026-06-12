@@ -199,10 +199,14 @@
         btn.innerText = "Yuborilmoqda...";
 
         try {
+            // Savatdagi har bir dori elementini aylanib chiqamiz
             for (let item of cart) {
                 let rem = item.qty;
+
                 for (let b of item.batches) {
+                    // Agar kerakli doza to'liq yig'ilgan bo'lsa, keyingi partiyaga o'tmaymiz!
                     if (rem <= 0) break;
+
                     let sell = Math.min(rem, b.quantity);
                     if (sell <= 0) continue;
 
@@ -212,26 +216,44 @@
                             'Content-Type': 'application/json',
                             'X-CSRFToken': '{{ csrf_token }}'
                         },
-                        body: JSON.stringify({ medicine: b.id, quantity: sell, type: "out", type_payment: currentPayment })
+                        body: JSON.stringify({
+                            medicine: b.id,
+                            quantity: sell,
+                            type: "out",
+                            type_payment: currentPayment
+                        })
                     });
 
                     if (res.status === 401 || res.status === 403) {
                         window.location.href = "/login/";
                         return;
                     }
-                    if (!res.ok) throw new Error("Sotuvda xatolik");
-                    rem -= sell;
+
+                    if (!res.ok) {
+                        throw new Error("API rad etildi");
+                    }
+
+                    rem -= sell; // Muvaffaqiyatli POST'dan keyingina qoldiqni ayiramiz
                 }
             }
 
+            // --- SOTUV TO'LIQ VA MUVAFFAQIYATLI BITDI ---
+            // Birinchi navbatda yashil oynani chiqaramiz va savatni tozalaymiz
             Swal.fire('Tayyor!', 'Sotuv muvaffaqiyatli yakunlandi.', 'success');
             cart = [];
             localStorage.removeItem('pharma_cart');
             saveAndRender();
-            await loadMedicines();
+
+            // Dorilar ro'yxatini qayta yangilashni mutlaqo izolyatsiya qilingan blokda bajaramiz
+            try {
+                await loadMedicines();
+            } catch (loadError) {
+                console.error("Dorilarni yangilashda xatolik (lekin sotuv o'tdi):", loadError);
+            }
+
         } catch (e) {
-            console.error(e);
-            Swal.fire('Xato', 'Tizimda xatolik yuz berdi.', 'error');
+            console.error("Sotuv jarayonida xato:", e);
+            Swal.fire('Xato', 'Tizimda xatolik yuz berdi. Dorilar qoldigʻini tekshiring.', 'error');
         } finally {
             btn.disabled = false;
             btn.innerText = "SOTUVNI YAKUNLASH";
