@@ -72,7 +72,7 @@
 
     let cart = JSON.parse(localStorage.getItem('pharma_cart')) || [];
     let groupedMedicines = {};
-    let currentPayment = 'paid';
+    let currentPayment = 'PAID';
 
     async function loadMedicines() {
         try {
