@@ -84,7 +84,7 @@ JAZZMIN_SETTINGS = {
 
     "copyright": "Pharma Pro Ltd",
 
-    "search_model": ["auth.User"],
+    "search_model": ["authentication.User"],
 
     "icons": {
         "auth": "fas fa-users-cog",
