@@ -7,12 +7,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-+s@ug*i^&m3*wty%-x8-_bpequx1p&ntw0l7iv6l_hi5_f)5m#'
 
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 AUTH_USER_MODEL =  "authentication.user"
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.auth',
     'django.contrib.admin',
     'django.contrib.contenttypes',
@@ -72,7 +73,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'root.wsgi.application'
 
+JAZZMIN_SETTINGS = {
+    "site_title": "Pharma Pro Admin",
 
+    "site_header": "Pharma Pro",
+
+    "site_brand": "Pharma Automation",
+
+    "welcome_sign": "Pharma Pro tizimiga xush kelibsiz!",
+
+    "copyright": "Pharma Pro Ltd",
+
+    "search_model": ["auth.User"],
+
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user",
+        "auth.Group": "fas fa-users",
+    },
+
+    "show_sidebar": True,
+    "navigation_expanded": True,
+}
 
 
 DATABASES = {

@@ -17,6 +17,7 @@ dj-rest-auth==7.2.0
 Django==6.0.3
 django-allauth==65.15.0
 django-filter==25.2
+django-jazzmin==3.0.4
 djangorestframework==3.17.1
 djangorestframework_simplejwt==5.5.1
 dotenv==0.9.9

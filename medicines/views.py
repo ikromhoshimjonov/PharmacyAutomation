@@ -126,6 +126,7 @@ class ExpiringCountMedicinesView(ListAPIView):
         data  = Medicines.objects.filter(quantity__lt=70)
         return data
 
+
 @extend_schema(tags=["statistic"])
 class WeeklySalesStatView(APIView):
     def get(self, request):
