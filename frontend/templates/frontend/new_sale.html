@@ -72,7 +72,7 @@
 
     let cart = JSON.parse(localStorage.getItem('pharma_cart')) || [];
     let groupedMedicines = {};
-    let currentPayment = 'PAID';
+    let currentPayment = 'paid';
 
     async function loadMedicines() {
         try {
@@ -210,19 +210,19 @@
                     let sell = Math.min(rem, b.quantity);
                     if (sell <= 0) continue;
 
-                    const res = await fetch('/api/v1/stock/', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        },
-                        body: JSON.stringify({
-                            medicine: b.id,
-                            quantity: sell,
-                            type: "out",
-                            type_payment: currentPayment
-                        })
-                    });
+                  const res = await fetch('/api/v1/stock/', {
+                          method: 'POST',
+                          headers: {
+                                'Content-Type': 'application/json',
+                                                                'X-CSRFToken': '{{ csrf_token }}'},
+                                    body: JSON.stringify({
+                                        medicine: b.id,
+                                        quantity: sell,
+                                        type: "out",
+                                        // .replace() orqali string ichidagi barcha ortiqcha qo'shtirnoqlarni tozalaymiz
+                                        type_payment: currentPayment.replace(/['"]+/g, '')
+                                    })
+                                });
 
                     if (res.status === 401 || res.status === 403) {
                         window.location.href = "/login/";
