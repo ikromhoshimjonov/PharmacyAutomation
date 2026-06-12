@@ -84,11 +84,9 @@
             const data = await res.json();
             groupedMedicines = {};
 
-            // Bugungi sana (taqqoslash uchun)
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
-            // Filtr: Faqat aktiv va muddati o'tmagan dorilar
             const activeData = data.filter(m => {
                 const expiry = new Date(m.expiry_date);
                 return m.is_active !== false && expiry >= today;
@@ -195,41 +193,8 @@
         saveAndRender();
     }
 
-    function generateReceipt(items, total, paymentType) {
-        const now = new Date();
-        const dateStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString();
-        let itemsRows = items.map(i => `
-            <tr>
-                <td style="padding:5px 0; border-bottom: 0.5px dashed #ccc;">${i.name}<br><small>${i.qty} x ${new Intl.NumberFormat('uz-UZ').format(i.price)}</small></td>
-                <td style="text-align:right; vertical-align:top; border-bottom: 0.5px dashed #ccc;">${new Intl.NumberFormat('uz-UZ').format(i.total)}</td>
-            </tr>
-        `).join('');
-
-        const printWindow = window.open('', '', 'width=320,height=600');
-        printWindow.document.write(`
-            <html>
-            <head><title>Chek</title></head>
-            <body onload="window.print(); window.close();" style="font-family:monospace; width:70mm; margin:0; padding:10px;">
-                <h3 style="text-align:center; margin:0;">PharmaPro</h3>
-                <p style="text-align:center; font-size:12px; margin:5px 0;">${dateStr}</p>
-                <hr style="border:none; border-top:1px dashed #000;">
-                <table style="width:100%; font-size:12px; border-collapse:collapse;">${itemsRows}</table>
-                <hr style="border:none; border-top:1px dashed #000;">
-                <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px;">
-                    <span>JAMI:</span><span>${new Intl.NumberFormat('uz-UZ').format(total)} UZS</span>
-                </div>
-                <p style="text-align:center; margin-top:20px; font-size:12px;">XARIDINGIZ UCHUN RAHMAT!</p>
-            </body>
-            </html>
-        `);
-        printWindow.document.close();
-    }
-
     async function submitSale() {
         const btn = document.getElementById('submitBtn');
-        const totalAmount = cart.reduce((acc, obj) => acc + obj.total, 0);
-        const chekData = JSON.parse(JSON.stringify(cart));
-
         btn.disabled = true;
         btn.innerText = "Yuborilmoqda...";
 
@@ -259,8 +224,7 @@
                 }
             }
 
-            generateReceipt(chekData, totalAmount, currentPayment);
-            Swal.fire('Tayyor!', 'Sotuv yakunlandi.', 'success');
+            Swal.fire('Tayyor!', 'Sotuv muvaffaqiyatli yakunlandi.', 'success');
             cart = [];
             localStorage.removeItem('pharma_cart');
             saveAndRender();
